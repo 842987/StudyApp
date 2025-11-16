@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.ui.NavDisplay
 import com.catoncat.studyapp.ui.theme.Purple40
 import com.catoncat.studyapp.ui.theme.Purple80
 import com.catoncat.studyapp.ui.theme.StudyApplication2Theme
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
 
-            StudyApplication2Theme { App() }
+
+            StudyApplication2Theme(darkTheme = true) { App() }
         }
     }
 }
