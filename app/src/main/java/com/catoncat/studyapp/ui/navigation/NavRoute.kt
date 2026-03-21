@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesScreen
+import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingScreen
 import com.catoncat.studyapp.ui.screen.mycourses.MyCoursesScreen
 import com.catoncat.studyapp.ui.screen.settings.SettingsScreen
 import com.catoncat.studyapp.ui.screen.takencourses.TakenCoursesScreen
@@ -38,6 +39,9 @@ fun NavRoute(
             }
             entry<AppRoute.Settings> {
                 SettingsScreen()
+            }
+            entry<AppRoute.CourseCreating> {
+                CourseCreatingScreen(backStack = backStack)
             }
         }
     )

@@ -8,6 +8,7 @@ sealed interface AppRoute/*(val route: String)*/ {
     data object MyCourses : AppRoute/*("Мои курсы")*/
     data object Settings : AppRoute/*("Настройки")*/
     data object TakenCourses : AppRoute/*("Проходимые курсы")*/
+    data object CourseCreating: AppRoute
 
 //    override fun equals(other: Any?): Boolean {
 //        return other.toString() == this.toString();
