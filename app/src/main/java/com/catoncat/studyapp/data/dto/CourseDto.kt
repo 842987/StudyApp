@@ -5,8 +5,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CourseDto(
+    @SerialName("id")
+    val id: Long?,
     @SerialName("name")
     val name: String?,
     @SerialName("description")
-    val description: String?
+    val description: String?,
+    @SerialName("backgroundUrl")
+    val backgroundUrl: String?,
+    @SerialName("creator")
+    val creator: UserDto?,
+    @SerialName("lessons")
+    val lessons: List<LessonDto>
 )

@@ -3,6 +3,8 @@ package com.catoncat.studyapp.ui.navigation
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -49,32 +51,36 @@ fun NavRoute(
 
 @Composable
 fun BottomNavBar(backStack: SnapshotStateList<AppRoute>) {
+
     val currentRoute = backStack.last();
 
-    NavigationBar {
-        NavigationBarItem(
-            currentRoute == AppRoute.AllCourses,
-            icon = { Text("Все") }, onClick = {
-                backStack.add(AppRoute.AllCourses)
-            }
-        )
-        NavigationBarItem(
-            currentRoute == AppRoute.MyCourses,
-            icon = { Text("Мои") }, onClick = {
-                backStack.add(AppRoute.MyCourses)
-            }
-        )
-        NavigationBarItem(
-            currentRoute == AppRoute.TakenCourses,
-            icon = { Text("Изучаемые") }, onClick = {
-                backStack.add(AppRoute.TakenCourses)
-            }
-        )
-        NavigationBarItem(
-            currentRoute == AppRoute.Settings,
-            icon = { Text("Настройки") }, onClick = {
-                backStack.add(AppRoute.Settings)
-            }
-        )
+
+    if (currentRoute != AppRoute.CourseCreating) {
+        ShortNavigationBar {
+            ShortNavigationBarItem(
+                currentRoute == AppRoute.AllCourses,
+                icon = { Text("Все") }, onClick = {
+                    backStack.add(AppRoute.AllCourses)
+                }, label = null
+            )
+            ShortNavigationBarItem(
+                currentRoute == AppRoute.MyCourses,
+                icon = { Text("Мои") }, onClick = {
+                    backStack.add(AppRoute.MyCourses)
+                }, label = null
+            )
+            ShortNavigationBarItem(
+                currentRoute == AppRoute.TakenCourses,
+                icon = { Text("Изучаемые") }, onClick = {
+                    backStack.add(AppRoute.TakenCourses)
+                }, label = null
+            )
+            ShortNavigationBarItem(
+                currentRoute == AppRoute.Settings,
+                icon = { Text("Настройки") }, onClick = {
+                    backStack.add(AppRoute.Settings)
+                }, label = null
+            )
+        }
     }
 }

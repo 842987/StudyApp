@@ -15,7 +15,7 @@ import com.catoncat.studyapp.domain.allcourses.entities.CourseEntity
 fun MyCoursesScreen() {
     LazyColumn {
         for (i in 0..10) {
-            item(content = { ItemCourse(CourseEntity("Test", "Test description")) })
+//            item(content = { ItemCourse(CourseEntity("Test", "Test description")) })
         }
     }
     FloatingActionButton(onClick = {}, content = { Text(text = "+") })

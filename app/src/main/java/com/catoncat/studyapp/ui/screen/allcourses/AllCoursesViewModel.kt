@@ -3,8 +3,13 @@ package com.catoncat.studyapp.ui.screen.allcourses
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.catoncat.studyapp.data.CourseRepository
+import com.catoncat.studyapp.data.source.CourseInfoDataSource
+import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
 import com.catoncat.studyapp.domain.allcourses.entities.CourseEntity
 import com.catoncat.studyapp.domain.allcourses.entities.PagingAllCoursesEntity
+import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
+import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
@@ -23,7 +28,9 @@ class AllCoursesViewModel : ViewModel() {
         MutableStateFlow(AllCoursesState.Loading)
     val uiState: StateFlow<AllCoursesState> = _uiState.asStateFlow();
     private val actualResult: MutableList<AllCoursesState.Item> = mutableListOf()
-
+    private val getAllCoursesUseCase = GetAllCoursesUseCase(
+        courseRepository = CourseRepository(CourseInfoDataSource())
+    )
     init {
         getData()
     }
@@ -42,37 +49,82 @@ class AllCoursesViewModel : ViewModel() {
 
     fun getData(offset: Int = 0) {
         viewModelScope.launch {
-            _uiState.emit(AllCoursesState.Loading)
-
-            delay(1500)
-
-            for (i in 0..10) {
-                actualResult.add(
-
-
-//                        when (Random.nextInt(0, 3)) {
-//                            0 -> AllCoursesState.Item.Course(
-//                                CourseEntity(
-//                                    "Test",
-//                                    "Test description"
-//                                )
-//                            )
-//                            1 -> AllCoursesState.Item.Loading
-//                            else ->
-//                                AllCoursesState.Item.Error
-//                        }
-                    AllCoursesState.Item.Course(
-                        CourseEntity(
-                            "Test",
-                            "Test description"
-                        )
-                    )
+//            _uiState.emit(AllCoursesState.Loading)
+//
+//            delay(1500)
+//
+//            for (i in 0..10) {
+////                actualResult.add(
+//
+//
+////                        when (Random.nextInt(0, 3)) {
+////                            0 -> AllCoursesState.Item.Course(
+////                                CourseEntity(
+////                                    "Test",
+////                                    "Test description"
+////                                )
+////                            )
+////                            1 -> AllCoursesState.Item.Loading
+////                            else ->
+////                                AllCoursesState.Item.Error
+////                        }
+////                    AllCoursesState.Item.Course(
+////                        CourseEntity(
+////                            "Test",
+////                            "Test description"
+////                        )
+////                    )
+////                )
+//
+//
+//            }
+//
+//            _uiState.emit(AllCoursesState.Content(true, actualResult.toPersistentList()))
+            val isFirstPage = offset == 0
+            viewModelScope.launch {
+                // В начале определяем где нарисовать "крутилку"
+                _uiState.emit(
+                    if (isFirstPage) {
+                        AllCoursesState.Loading
+                    } else {
+                        mutex.withLock {
+                            dropLastTemporaryItem()
+                            actualResult.add(AllCoursesState.Item.Loading)
+                            (_uiState.value as? AllCoursesState.Content)?.copy(
+                                courses = actualResult.toPersistentList()
+                            ) ?: AllCoursesState.Loading
+                        }
+                    }
                 )
 
+                // Запрашиваем данные
+                getAllCoursesUseCase.invoke(offset).fold(
+                    onSuccess = { data ->
+                        addItemsToState(isFirstPage, data)
+                    },
+                    onFailure = { error ->
+                        error.printStackTrace()
+                        _uiState.emit(
+                            when (val state = _uiState.value) {
+                                is AllCoursesState.Content -> {
+                                    mutex.withLock {
+                                        dropLastTemporaryItem()
+                                        actualResult.add(AllCoursesState.Item.Error)
+                                        state.copy(
+                                            courses = actualResult.toPersistentList()
+                                        )
+                                    }
+                                }
 
+                                is AllCoursesState.Error,
+                                AllCoursesState.Loading -> {
+                                    AllCoursesState.Error(error.message.orEmpty())
+                                }
+                            }
+                        )
+                    }
+                )
             }
-
-            _uiState.emit(AllCoursesState.Content(true, actualResult.toPersistentList()))
         }
     }
 
