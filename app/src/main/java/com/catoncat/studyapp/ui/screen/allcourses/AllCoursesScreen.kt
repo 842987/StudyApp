@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.catoncat.studyapp.domain.allcourses.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
+import com.catoncat.studyapp.ui.theme.Typography
 
 @Composable
 fun AllCoursesScreen(
@@ -103,9 +105,14 @@ fun ItemCourse(entity: CourseEntity) {
             .height(150.dp)
             .padding(10.dp)
     ) {
-        Row(Modifier.fillMaxSize()) {
-            Text(entity.name)
-            Text(entity.description)
+        Column(Modifier.fillMaxSize()) {
+            Text(
+                text = entity.name,
+                style = Typography.headlineMedium,
+                modifier = Modifier.padding(5.dp)
+            )
+            Text(text = entity.creator.username, style = Typography.bodyLarge)
+            Text(text = entity.description)
         }
     }
 }

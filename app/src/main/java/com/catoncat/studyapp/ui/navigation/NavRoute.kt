@@ -37,7 +37,7 @@ fun NavRoute(
                 MyCoursesScreen()
             }
             entry<AppRoute.TakenCourses> {
-                TakenCoursesScreen()
+                TakenCoursesScreen(backStack = backStack)
             }
             entry<AppRoute.Settings> {
                 SettingsScreen()

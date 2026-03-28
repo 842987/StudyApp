@@ -30,6 +30,24 @@ class CourseInfoDataSource {
         }
     }
 
+    suspend fun getCoursesUserTook(userId: Long, page: Int, size: Int): Result<PagingAllCoursesDto> = withContext(
+        Dispatchers.IO
+    ) {
+        runCatching {
+            val result = Network.client.get("${Network.HOST}/api/course/taken/") {
+                url {
+                    parameter("userId", userId)
+                    parameter("pageNumber", page)
+                    parameter("pageSize", size)
+                }
+            }
+            if (result.status != HttpStatusCode.OK) {
+                error("Status: ${result.status}")
+            }
+            result.body()
+        }
+    }
+
 //    suspend fun createCourse(courseDto: CourseDto) = withContext(Dispatchers.IO) {
 //        runCatching {
 //            val result = Network.client.post("${Network.HOST}/api/course") {

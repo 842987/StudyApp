@@ -26,12 +26,12 @@ sealed interface CourseCreatingState {
         var y: Float,
         var image: String,
         var name: String,
-        val id: Long?,
+        val id: Long,
         var exercises: PersistentList<Exercise>
     )
 
     data class Exercise(
-        val id: Long?,
+        val id: Long,
         var lessonId: Long?,
         var name: String,
         var text: String,
@@ -39,5 +39,5 @@ sealed interface CourseCreatingState {
         var answers: PersistentList<Answer>
     )
 
-    data class Answer(val id: Long?, var text: String, var correct: Boolean)
+    data class Answer(val id: Long, var text: String, var correct: Boolean)
 }

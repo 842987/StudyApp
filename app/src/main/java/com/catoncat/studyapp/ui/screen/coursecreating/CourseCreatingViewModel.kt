@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
+import com.catoncat.studyapp.data.source.CourseLocalDataSource
+import com.catoncat.studyapp.data.source.UserLocalDataSource
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.entities.AnswerEntity
 import com.catoncat.studyapp.domain.coursecreating.entities.CourseEntity
@@ -24,7 +26,8 @@ class CourseCreatingViewModel : ViewModel() {
 
     //    private val actualResult: MutableList<CourseCreatingState.Lesson> = mutableListOf()
     private val updateCourseUseCase = UpdateCourseUseCase(
-        courseRepository = CourseRepository(CourseInfoDataSource())
+        courseRepository = CourseRepository(CourseInfoDataSource(), CourseLocalDataSource(),
+            UserLocalDataSource())
     )
 
     init {

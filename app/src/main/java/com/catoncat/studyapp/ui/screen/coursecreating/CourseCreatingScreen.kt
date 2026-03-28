@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
 import com.catoncat.studyapp.ui.util.ExerciseType
@@ -79,6 +80,7 @@ fun CourseCreatingScreen(
                 backStack.remove(AppRoute.CourseCreating)
             }
         )
+
         is CourseCreatingState.Error -> CourseCreatingErrorState()
         CourseCreatingState.Loading -> CourseCreatingLoadingState()
     }
@@ -130,7 +132,7 @@ fun CourseCreatingContentState(
                 0.0f,
                 "",
                 "Без названия",
-                null,
+                0,
                 persistentListOf()
             )
         )
@@ -164,7 +166,7 @@ fun CourseCreatingContentState(
 //            (newLessonOffset.value).y,
             "",
             "Без названия",
-            null,
+            0,
             persistentListOf()
         ),
         showAddDialog,
@@ -218,9 +220,20 @@ fun CourseCreatingContentState(
 //                    offset.value += panChange
 //                }, lockRotationOnZoomPan = true, enabled = true)
         ) {
-            Canvas(Modifier.fillMaxSize()) {
-                drawRect(Color.DarkGray)
+            val error = remember { mutableStateOf(false) }
+            if (error.value) {
+
+                Canvas(Modifier.fillMaxSize()) {
+                    drawRect(Color.DarkGray)
+                }
             }
+
+            AsyncImage(
+                model = content.course.background,
+                contentDescription = "Course background",
+                modifier = Modifier.fillMaxSize(),
+                onError = { error.value = true })
+
             lessons.value.forEach { lesson ->
 //                when (it) {
 //                    is CourseCreatingState.Lesson -> {
@@ -510,7 +523,7 @@ fun EditLessonDialog(
 
                                         Button(onClick = {
                                             exercise.answers = exercise.answers.add(
-                                                CourseCreatingState.Answer(null, "", false)
+                                                CourseCreatingState.Answer(0, "", false)
                                             )
                                             answers.value = exercise.answers
                                         }) { Text("Добавить") }
@@ -553,7 +566,7 @@ fun EditLessonDialog(
                     Button(onClick = {
                         exercises.value = exercises.value.add(
                             CourseCreatingState.Exercise(
-                                null, lesson.id, "Без названия", "",
+                                0, lesson.id, "Без названия", "",
                                 ExerciseType.Choose.name, persistentListOf()
                             )
                         )

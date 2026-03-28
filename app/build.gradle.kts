@@ -77,6 +77,8 @@ dependencies {
 //    implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.collections.immutable)
-
     implementation(libs.bundles.ktor)
+
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }
