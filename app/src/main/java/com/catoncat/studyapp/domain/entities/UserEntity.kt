@@ -1,4 +1,4 @@
-package com.catoncat.studyapp.domain.coursecreating.entities
+package com.catoncat.studyapp.domain.entities
 
 class UserEntity(
     val id: Long,

@@ -1,6 +1,6 @@
 package com.catoncat.studyapp.ui.screen.takencourses
 
-import com.catoncat.studyapp.domain.takencourses.entities.CourseEntity
+import com.catoncat.studyapp.domain.entities.CourseEntity
 import kotlinx.collections.immutable.PersistentList
 
 

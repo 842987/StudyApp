@@ -7,12 +7,12 @@ import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.data.source.UserLocalDataSource
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
-import com.catoncat.studyapp.domain.coursecreating.entities.AnswerEntity
-import com.catoncat.studyapp.domain.coursecreating.entities.CourseEntity
-import com.catoncat.studyapp.domain.coursecreating.entities.ExerciseEntity
-import com.catoncat.studyapp.domain.coursecreating.entities.LessonEntity
+import com.catoncat.studyapp.domain.entities.AnswerEntity
+import com.catoncat.studyapp.domain.entities.CourseEntity
+import com.catoncat.studyapp.domain.entities.ExerciseEntity
+import com.catoncat.studyapp.domain.entities.LessonEntity
+import com.catoncat.studyapp.domain.entities.UserEntity
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +43,7 @@ class CourseCreatingViewModel : ViewModel() {
                         intent.course.name,
                         intent.course.description,
                         intent.course.background,
+                        UserEntity(0, ""),
                         intent.course.lessons.map { lesson ->
                             LessonEntity(
                                 lesson.id,

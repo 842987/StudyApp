@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.catoncat.studyapp.domain.takencourses.entities.CourseEntity
+import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
 

@@ -11,10 +11,10 @@ data class CourseDto(
     val name: String?,
     @SerialName("description")
     val description: String?,
-    @SerialName("backgroundUrl")
+    @SerialName("background_url")
     val backgroundUrl: String?,
     @SerialName("creator")
     val creator: UserDto?,
     @SerialName("lessons")
-    val lessons: List<LessonDto>
+    val lessons: List<LessonDto>? = null
 )

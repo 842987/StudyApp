@@ -8,10 +8,9 @@ import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.data.source.UserLocalDataSource
 import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
-import com.catoncat.studyapp.domain.allcourses.entities.CourseEntity
-import com.catoncat.studyapp.domain.allcourses.entities.PagingAllCoursesEntity
 import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
+import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
@@ -133,7 +132,7 @@ class AllCoursesViewModel : ViewModel() {
 
     private suspend fun addItemsToState(
         isFirstPage: Boolean,
-        data: PagingAllCoursesEntity,
+        data: PagingCoursesEntity,
     ) {
         mutex.withLock {
             if (isFirstPage) {

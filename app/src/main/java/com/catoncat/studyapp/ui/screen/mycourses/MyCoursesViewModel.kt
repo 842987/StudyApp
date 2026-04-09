@@ -1,4 +1,4 @@
-package com.catoncat.studyapp.ui.screen.takencourses
+package com.catoncat.studyapp.ui.screen.mycourses
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,8 +6,9 @@ import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.data.source.UserLocalDataSource
+import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
-import com.catoncat.studyapp.domain.takencourses.GetTakenCoursesUseCase
+import com.catoncat.studyapp.domain.mycourses.GetCoursesCreatedByUserUseCase
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,27 +17,30 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class TakenCoursesViewModel : ViewModel() {
+class MyCoursesViewModel : ViewModel() {
     private val mutex = Mutex()
-    private val _uiState: MutableStateFlow<TakenCoursesState> =
-        MutableStateFlow(TakenCoursesState.Loading)
-    val uiState: StateFlow<TakenCoursesState> = _uiState.asStateFlow();
-    private val actualResult: MutableList<TakenCoursesState.Item> = mutableListOf()
-    private val getTakenCoursesUseCase = GetTakenCoursesUseCase(
-        courseRepository = CourseRepository(CourseInfoDataSource(), CourseLocalDataSource(),
-            UserLocalDataSource())
+    private val _uiState: MutableStateFlow<MyCoursesState> =
+        MutableStateFlow(MyCoursesState.Loading)
+    val uiState: StateFlow<MyCoursesState> = _uiState.asStateFlow();
+    private val actualResult: MutableList<MyCoursesState.Item> = mutableListOf()
+    private val getMyCoursesUseCase = GetCoursesCreatedByUserUseCase(
+        courseRepository = CourseRepository(
+            CourseInfoDataSource(), CourseLocalDataSource(),
+            UserLocalDataSource()
+        )
     )
+
     init {
         getData()
     }
 
-    fun onIntent(intent: TakenCoursesIntent) {
+    fun onIntent(intent: MyCoursesIntent) {
         when (intent) {
-            is TakenCoursesIntent.LoadMore -> {
+            is MyCoursesIntent.LoadMore -> {
                 getData(offset = actualResult.size)
             }
 
-            is TakenCoursesIntent.Refresh -> {
+            is MyCoursesIntent.Refresh -> {
                 getData(offset = if (actualResult.isEmpty()) 0 else actualResult.size - 1)
             }
         }
@@ -49,20 +53,20 @@ class TakenCoursesViewModel : ViewModel() {
                 // В начале определяем где нарисовать "крутилку"
                 _uiState.emit(
                     if (isFirstPage) {
-                        TakenCoursesState.Loading
+                        MyCoursesState.Loading
                     } else {
                         mutex.withLock {
                             dropLastTemporaryItem()
-                            actualResult.add(TakenCoursesState.Item.Loading)
-                            (_uiState.value as? TakenCoursesState.Content)?.copy(
+                            actualResult.add(MyCoursesState.Item.Loading)
+                            (_uiState.value as? MyCoursesState.Content)?.copy(
                                 courses = actualResult.toPersistentList()
-                            ) ?: TakenCoursesState.Loading
+                            ) ?: MyCoursesState.Loading
                         }
                     }
                 )
 
                 // Запрашиваем данные
-                getTakenCoursesUseCase.invoke(offset).fold(
+                getMyCoursesUseCase.invoke(offset).fold(
                     onSuccess = { data ->
                         addItemsToState(isFirstPage, data)
                     },
@@ -70,19 +74,19 @@ class TakenCoursesViewModel : ViewModel() {
                         error.printStackTrace()
                         _uiState.emit(
                             when (val state = _uiState.value) {
-                                is TakenCoursesState.Content -> {
+                                is MyCoursesState.Content -> {
                                     mutex.withLock {
                                         dropLastTemporaryItem()
-                                        actualResult.add(TakenCoursesState.Item.Error)
+                                        actualResult.add(MyCoursesState.Item.Error)
                                         state.copy(
                                             courses = actualResult.toPersistentList()
                                         )
                                     }
                                 }
 
-                                is TakenCoursesState.Error,
-                                TakenCoursesState.Loading -> {
-                                    TakenCoursesState.Error(error.message.orEmpty())
+                                is MyCoursesState.Error,
+                                MyCoursesState.Loading -> {
+                                    MyCoursesState.Error(error.message.orEmpty())
                                 }
                             }
                         )
@@ -103,10 +107,10 @@ class TakenCoursesViewModel : ViewModel() {
                 dropLastTemporaryItem()
             }
             actualResult.addAll(
-                data.courses.map { item -> TakenCoursesState.Item.Course(item) }
+                data.courses.map { item -> MyCoursesState.Item.Course(item) }
             )
             _uiState.emit(
-                TakenCoursesState.Content(
+                MyCoursesState.Content(
                     isLastPage = data.isLast,
                     courses = actualResult.toPersistentList()
                 )
@@ -116,10 +120,10 @@ class TakenCoursesViewModel : ViewModel() {
 
     private fun dropLastTemporaryItem() {
         when (actualResult.last()) {
-            is TakenCoursesState.Item.Error,
-            is TakenCoursesState.Item.Loading -> actualResult.removeAt(actualResult.lastIndex)
+            is MyCoursesState.Item.Error,
+            is MyCoursesState.Item.Loading -> actualResult.removeAt(actualResult.lastIndex)
 
-            is TakenCoursesState.Item.Course -> Unit
+            is MyCoursesState.Item.Course -> Unit
         }
     }
 }

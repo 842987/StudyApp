@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.catoncat.studyapp.domain.allcourses.entities.CourseEntity
+import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
 
@@ -49,7 +49,7 @@ fun AllCoursesScreen(
         is AllCoursesState.Content -> AllCoursesContentState(
             currentState,
             onLoadMore = { viewModel.onIntent(AllCoursesIntent.LoadMore) },
-            onRefresh = { AllCoursesIntent.Refresh }
+            onRefresh = { viewModel.onIntent(AllCoursesIntent.Refresh) }
         )
     }
 
@@ -87,11 +87,15 @@ fun AllCoursesContentState(
     onRefresh: () -> Unit
 ) {
     LazyColumn(Modifier.fillMaxSize()) {
-        items(currentState.courses) { item ->
-            when (item) {
-                is AllCoursesState.Item.Course -> ItemCourse(item.entity)
-                AllCoursesState.Item.Error -> ItemError()
-                AllCoursesState.Item.Loading -> ItemLoading()
+        for (i in 0..10) {
+
+
+            items(currentState.courses) { item ->
+                when (item) {
+                    is AllCoursesState.Item.Course -> ItemCourse(item.entity)
+                    AllCoursesState.Item.Error -> ItemError()
+                    AllCoursesState.Item.Loading -> ItemLoading()
+                }
             }
         }
     }
@@ -102,7 +106,7 @@ fun ItemCourse(entity: CourseEntity) {
     ElevatedCard(
         Modifier
             .fillMaxWidth()
-            .height(150.dp)
+//            .height(150.dp)
             .padding(10.dp)
     ) {
         Column(Modifier.fillMaxSize()) {
