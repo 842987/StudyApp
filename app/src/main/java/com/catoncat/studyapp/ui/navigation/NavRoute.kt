@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.Typeface
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesScreen
+import com.catoncat.studyapp.ui.screen.auth.AuthScreen
 import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingScreen
 import com.catoncat.studyapp.ui.screen.mycourses.MyCoursesScreen
 import com.catoncat.studyapp.ui.screen.settings.SettingsScreen
@@ -46,6 +47,9 @@ fun NavRoute(
             }
             entry<AppRoute.CourseCreating> {
                 CourseCreatingScreen(backStack = backStack)
+            }
+            entry<AppRoute.Auth> {
+                AuthScreen(backStack = backStack)
             }
         }
     )

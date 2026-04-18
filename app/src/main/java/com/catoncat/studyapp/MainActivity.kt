@@ -24,12 +24,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             StudyAppTheme {
                 val backStack = remember { mutableStateListOf<AppRoute>(AppRoute.AllCourses) }
-                backStack.add(AppRoute.CourseCreating)
+                backStack.add(AppRoute.Auth)
                 Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = { BottomNavBar(backStack) }) { innerPadding ->
                     NavRoute(Modifier.padding(innerPadding).fillMaxSize(), backStack)
                 }
-
-
             }
         }
     }
