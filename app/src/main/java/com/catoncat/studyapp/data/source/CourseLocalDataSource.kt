@@ -1,4 +1,7 @@
 package com.catoncat.studyapp.data.source
 
-class CourseLocalDataSource {
+import com.catoncat.studyapp.domain.entities.CourseEntity
+
+object CourseLocalDataSource {
+    var currentCourse: CourseEntity? = null
 }

@@ -45,13 +45,16 @@ fun AuthScreen(
     viewModel: AuthViewModel = viewModel(),
     backStack: SnapshotStateList<AppRoute>
 ) {
-    SecureScreen()
+//    SecureScreen()
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.actionFlow.collect { action ->
             when (action) {
-                is AuthAction.OpenScreen -> backStack.add(action.route)
+                is AuthAction.OpenScreen -> {
+                    backStack.clear()
+                    backStack.add(action.route)
+                }
             }
         }
     }
@@ -64,7 +67,7 @@ fun AuthScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Auth",
+            text = "Вход",
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
@@ -104,7 +107,7 @@ private fun Content(
             inputLogin = it
             viewModel.onIntent(AuthIntent.TextInput(inputLogin, inputPassword))
         },
-        label = { Text("Имя пользователя") }
+        label = { Text("Почта") }
     )
     Spacer(modifier = Modifier.size(16.dp))
     TextField(
@@ -145,19 +148,19 @@ private fun Content(
         )
     }
 }
-
-@Composable
-fun SecureScreen() {
-    val activity = LocalActivity.current
-    LifecycleStartEffect(Unit) {
-        activity?.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
-        onStopOrDispose {
-            activity?.window?.clearFlags(
-                WindowManager.LayoutParams.FLAG_SECURE
-            )
-        }
-    }
-}
+//
+//@Composable
+//fun SecureScreen() {
+//    val activity = LocalActivity.current
+//    LifecycleStartEffect(Unit) {
+//        activity?.window?.setFlags(
+//            WindowManager.LayoutParams.FLAG_SECURE,
+//            WindowManager.LayoutParams.FLAG_SECURE
+//        )
+//        onStopOrDispose {
+//            activity?.window?.clearFlags(
+//                WindowManager.LayoutParams.FLAG_SECURE
+//            )
+//        }
+//    }
+//}

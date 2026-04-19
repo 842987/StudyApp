@@ -4,11 +4,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UserDto(
+data class ExerciseUpdateDto(
     @SerialName("id")
     val id: Long?,
-    @SerialName("username")
+    @SerialName("name")
     val name: String?,
-    @SerialName("avatar_url")
-    val avatarUrl: String? = null
+    @SerialName("text")
+    val text: String?,
+    @SerialName("typeName")
+    val typeName: String?,
 )

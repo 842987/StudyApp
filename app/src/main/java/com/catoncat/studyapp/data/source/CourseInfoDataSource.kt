@@ -1,7 +1,13 @@
 package com.catoncat.studyapp.data.source
 
 import android.util.Log
+import com.catoncat.studyapp.data.dto.AnswerDto
+import com.catoncat.studyapp.data.dto.CourseCreateDto
 import com.catoncat.studyapp.data.dto.CourseDto
+import com.catoncat.studyapp.data.dto.CourseUpdateDto
+import com.catoncat.studyapp.data.dto.ExerciseDto
+import com.catoncat.studyapp.data.dto.ExerciseUpdateDto
+import com.catoncat.studyapp.data.dto.LessonUpdateDto
 import com.catoncat.studyapp.data.dto.PagingAllCoursesDto
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -66,8 +72,8 @@ class CourseInfoDataSource {
 //            }
 //            result.body()
             val count =
-                Network.supabase.from("users_taken_course").select { count(Count.EXACT)  }
-                    .countOrNull()!!
+                Network.supabase.from("users_taken_course").select { count(Count.EXACT) }
+                    .countOrNull() ?: 0
 
             @Serializable
             data class CourseResult(
@@ -114,18 +120,27 @@ class CourseInfoDataSource {
 //                error("Status: ${result.status}")
 //            }
 //            result.body()
-            val count = Network.supabase.from("users_taken_course").select { count(Count.EXACT) }
-                .countOrNull()!!
+            val count = Network.supabase.from("course").select {
+                filter { eq("creator_id", userId) }
+                count(Count.EXACT)
+            }.countOrNull() ?: 0
+
+            val content = Network.supabase.from("course")
+                .select(columns = Columns.raw("id, name, description, background_url, creator:users(id, username)".trimIndent())) {
+                    filter { eq("creator_id", userId) }
+                    range(page * (size - 1), page * size - 1)
+                    order("id", Order.ASCENDING)
+                }
+                .decodeList<CourseDto>()
+
             val result =
                 PagingAllCoursesDto(
                     last = count == (page * size).toLong(),
-                    content = Network.supabase.from("course")
-                        .select(columns = Columns.raw("id, name, description, background_url, creator:users(id, username)".trimIndent())) {
-                            filter { eq("creator_id", userId) }
-                            range(page * (size - 1), page * size - 1)
-                            order("id", Order.ASCENDING)
-                        }
-                        .decodeList<CourseDto>())
+                    content = content
+                )
+
+            Log.e("CourseInfoDataSource", content.size.toString())
+
             result
         }
     }
@@ -173,13 +188,18 @@ class CourseInfoDataSource {
 //        }
 //    }
 
-    suspend fun createCourse(courseDto: CourseDto) = withContext(Dispatchers.IO) {
+    suspend fun createCourse(courseDto: CourseCreateDto) = withContext(Dispatchers.IO) {
         runCatching {
-            Network.supabase.from("course").insert(courseDto)
+            Log.d("Course creating", Network.supabase.from("course").insert(courseDto).data)
         }
     }
 
-    suspend fun updateCourse(courseDto: CourseDto) = withContext(Dispatchers.IO) {
+    suspend fun updateCourse(
+        courseDto: CourseUpdateDto,
+        lessonDtoList: List<LessonUpdateDto>,
+        exerciseDtoList: List<ExerciseUpdateDto>,
+        answerDtoList: List<AnswerDto>
+    ) = withContext(Dispatchers.IO) {
         runCatching {
 //            val result = Network.client.put("${Network.HOST}/api/course/") {
 //                setBody(courseDto)
@@ -187,7 +207,24 @@ class CourseInfoDataSource {
 //            if (result.status != HttpStatusCode.OK) {
 //                error("Status: ${result.status}")
 //            }
-            Network.supabase.from("course").update(courseDto)
+            Network.supabase.from("course").update({
+                set("name", courseDto.name)
+                set("description", courseDto.description)
+                set("background_url", courseDto.backgroundUrl)
+            }) {
+                filter {
+                    eq("id", courseDto.id!!)
+                }
+            }
+            Network.supabase.from("lesson").upsert(lessonDtoList) {
+                onConflict = "id"
+            }
+            Network.supabase.from("exercise").upsert(exerciseDtoList) {
+                onConflict = "id"
+            }
+            Network.supabase.from("answer").upsert(answerDtoList) {
+                onConflict = "id"
+            }
         }
     }
 }

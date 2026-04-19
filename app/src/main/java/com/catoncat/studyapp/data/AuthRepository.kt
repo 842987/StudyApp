@@ -21,5 +21,4 @@ class AuthRepository(
                 authLocalDataSource.clearToken()
             }
     }
-
 }

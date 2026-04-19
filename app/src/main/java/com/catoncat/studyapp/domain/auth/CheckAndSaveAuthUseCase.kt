@@ -10,7 +10,7 @@ class CheckAndSaveAuthUseCase(
         password: String,
     ): Result<Unit> {
         return authRepository.checkAndAuth(login, password).mapCatching { isLogin ->
-            if (!isLogin) error("Login or pass incorrect")
+            if (!isLogin) error("Почта или пароль введены неверно")
         }
     }
 }

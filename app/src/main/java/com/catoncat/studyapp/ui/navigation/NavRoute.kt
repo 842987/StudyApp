@@ -43,7 +43,7 @@ fun NavRoute(
                 TakenCoursesScreen(backStack = backStack)
             }
             entry<AppRoute.Settings> {
-                SettingsScreen()
+                SettingsScreen(backStack = backStack)
             }
             entry<AppRoute.CourseCreating> {
                 CourseCreatingScreen(backStack = backStack)
@@ -61,7 +61,7 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>) {
     val currentRoute = backStack.last();
 
 
-    if (currentRoute != AppRoute.CourseCreating) {
+    if (currentRoute != AppRoute.CourseCreating && currentRoute != AppRoute.Auth) {
         ShortNavigationBar {
             ShortNavigationBarItem(
                 currentRoute == AppRoute.AllCourses,

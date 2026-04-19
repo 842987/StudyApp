@@ -5,11 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
-import com.catoncat.studyapp.data.source.UserLocalDataSource
 import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
+import com.catoncat.studyapp.domain.mycourses.CreateCourseUseCase
 import com.catoncat.studyapp.domain.mycourses.GetCoursesCreatedByUserUseCase
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,10 +26,10 @@ class MyCoursesViewModel : ViewModel() {
     private val actualResult: MutableList<MyCoursesState.Item> = mutableListOf()
     private val getMyCoursesUseCase = GetCoursesCreatedByUserUseCase(
         courseRepository = CourseRepository(
-            CourseInfoDataSource(), CourseLocalDataSource(),
-            UserLocalDataSource()
-        )
+            CourseInfoDataSource())
     )
+    private val createCourseUseCase = CreateCourseUseCase(courseRepository = CourseRepository(
+        CourseInfoDataSource()))
 
     init {
         getData()
@@ -42,6 +43,17 @@ class MyCoursesViewModel : ViewModel() {
 
             is MyCoursesIntent.Refresh -> {
                 getData(offset = if (actualResult.isEmpty()) 0 else actualResult.size - 1)
+            }
+
+            is MyCoursesIntent.CreateCourse -> {
+                viewModelScope.launch {
+                    createCourseUseCase(intent.name, intent.description)
+                }
+                getData()
+            }
+
+            is MyCoursesIntent.ChooseCourse -> {
+                CourseLocalDataSource.currentCourse = intent.course
             }
         }
     }

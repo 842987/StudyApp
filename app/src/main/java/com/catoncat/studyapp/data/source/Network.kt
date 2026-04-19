@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
 
 object Network {
     //    const val HOST = "http://10.0.2.2:8080"
-    const val HOST = "http://192.168.1.56:8080"
+//    const val HOST = "http://192.168.1.56:8080"
 
     //    val client by lazy {
 //        HttpClient(CIO) {
@@ -46,8 +46,8 @@ object Network {
 //        }
 //    }
     val supabase = createSupabaseClient(
-        supabaseUrl = "",
-        supabaseKey = ""
+        supabaseUrl = "https://yjhpwtkydrepghwxzwlw.supabase.co",
+        supabaseKey = "sb_publishable_tiyHL9LCY3C6TzmsvWyGfA_NGVvngS6"
     ) {
         install(Postgrest) {
 //            defaultSchema = "schema" // default: "public"

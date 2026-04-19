@@ -1,10 +1,12 @@
 package com.catoncat.studyapp.domain.entities
 
+import kotlinx.collections.immutable.PersistentList
+
 
 class ExerciseEntity(
     val id: Long?,
-    val name: String,
-    val text: String,
-    val typeName: String,
-    val answers: List<AnswerEntity>
+    var name: String,
+    var text: String,
+    var typeName: String,
+    var answers: PersistentList<AnswerEntity>
 )

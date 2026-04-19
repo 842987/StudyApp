@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -55,6 +56,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.catoncat.studyapp.domain.entities.AnswerEntity
+import com.catoncat.studyapp.domain.entities.CourseEntity
+import com.catoncat.studyapp.domain.entities.ExerciseEntity
+import com.catoncat.studyapp.domain.entities.LessonEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
 import com.catoncat.studyapp.ui.util.ExerciseType
@@ -127,22 +132,44 @@ fun CourseCreatingContentState(
 
     val clickedLesson = remember {
         mutableStateOf(
-            CourseCreatingState.Lesson(
-                0.0f,
-                0.0f,
+            LessonEntity(
+                null,
                 "",
-                "Без названия",
-                0,
+                "",
+                0.0f,
+                0.0f,
+                persistentListOf(),
                 persistentListOf()
             )
+//            CourseCreatingState.Lesson(
+//                0.0f,
+//                0.0f,
+//                "",
+//                "Без названия",
+//                0,
+//                persistentListOf()
+//        )
         )
     }
 
     val showAddDialog = remember { mutableStateOf(false) }
     val showEditDialog = remember { mutableStateOf(false) }
     val showSaveOrNotSaveDialog = remember { mutableStateOf(false) }
+    val showEditCourseDialog = remember { mutableStateOf(false) }
     val lessons = remember { mutableStateOf(content.course.lessons) }
+    val courseName = remember { mutableStateOf(content.course.name) }
 //    val showEditExercisesDialog = remember { mutableStateOf(false) }
+
+    EditCourseDialog(
+        course = content.course,
+        show = showEditCourseDialog,
+        onSave = { name, description, backgroundUrl ->
+            content.course.name = name
+            courseName.value = name
+            content.course.description = description
+            content.course.backgroundUrl = backgroundUrl
+        }
+    )
 
     EditLessonDialog(
         "Редактирование урока",
@@ -153,20 +180,30 @@ fun CourseCreatingContentState(
 //        },
         onSaveButton = null,
         onDeleteButton = { lesson ->
+//            content.course.lessons = content.course.lessons.remove(lesson)
             content.course.lessons = content.course.lessons.remove(lesson)
-            lessons.value = content.course.lessons;
+            lessons.value = content.course.lessons
         }
     )
     EditLessonDialog(
         "Добавление урока",
-        CourseCreatingState.Lesson(
+//        CourseCreatingState.Lesson(
+//            Offset.Zero.x,
+//            Offset.Zero.y,
+////            (newLessonOffset.value).x,
+////            (newLessonOffset.value).y,
+//            "",
+//            "Без названия",
+//            0,
+//            persistentListOf()
+//        ),
+        LessonEntity(
+            null,
+            "",
+            "",
             Offset.Zero.x,
             Offset.Zero.y,
-//            (newLessonOffset.value).x,
-//            (newLessonOffset.value).y,
-            "",
-            "Без названия",
-            0,
+            persistentListOf(),
             persistentListOf()
         ),
         showAddDialog,
@@ -229,7 +266,7 @@ fun CourseCreatingContentState(
             }
 
             AsyncImage(
-                model = content.course.background,
+                model = content.course.backgroundUrl,
                 contentDescription = "Course background",
                 modifier = Modifier.fillMaxSize(),
                 onError = { error.value = true })
@@ -245,7 +282,7 @@ fun CourseCreatingContentState(
                         showEditDialog.value = true
                     },
                     Modifier
-                        .size(50.dp)
+//                        .size(50.dp)
                         .offset {
                             IntOffset(
                                 x.floatValue.roundToInt(),
@@ -258,7 +295,7 @@ fun CourseCreatingContentState(
                             lesson.x += o.x
                             lesson.y += o.y
                         })
-                ) { Text("1") }
+                ) { Text(lesson.name) }
 //            }
 //        }
 
@@ -277,7 +314,8 @@ fun CourseCreatingContentState(
                     onClick = onNavigateToPreviousScreen,
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) { Text("<-") }
-                Text("Редактирование курса", modifier = Modifier.align(Alignment.Center))
+
+                Text(courseName.value, modifier = Modifier.align(Alignment.Center))
 
                 SmallFloatingActionButton(
                     onClick = onUpdateCourse,
@@ -301,7 +339,7 @@ fun CourseCreatingContentState(
             ) { Text("+") }
             FloatingActionButton(
                 onClick = {
-                    showAddDialog.value = true
+                    showEditCourseDialog.value = true
                 },
 //                modifier = Modifier.align(Alignment.BottomEnd)
             ) { Text("⚙") }
@@ -330,16 +368,16 @@ fun CourseCreatingContentState(
 @Composable
 fun EditLessonDialog(
     title: String,
-    lesson: CourseCreatingState.Lesson,
+    lesson: LessonEntity,
     show: MutableState<Boolean>,
-    onSaveButton: ((CourseCreatingState.Lesson) -> Unit)?,
-    onDeleteButton: ((CourseCreatingState.Lesson) -> Unit)?
+    onSaveButton: ((LessonEntity) -> Unit)?,
+    onDeleteButton: ((LessonEntity) -> Unit)?
 ) {
 //    val newLesson = lesson.copy()
     if (show.value) {
         val name = remember { mutableStateOf(lesson.name) }
         val requiredLessons =
-            remember { mutableStateListOf<CourseCreatingState.Lesson>() }
+            remember { mutableStateListOf<LessonEntity>() }
         val exercises = remember { mutableStateOf(lesson.exercises) }
         Dialog(
             onDismissRequest = { show.value = false }, DialogProperties(
@@ -433,7 +471,7 @@ fun EditLessonDialog(
                                     ) {
                                         Text("Тип: ")
                                         val type =
-                                            remember { mutableStateOf(exercise.type) }
+                                            remember { mutableStateOf(exercise.typeName) }
 
                                         val expanded =
                                             remember { mutableStateOf(false) }
@@ -462,7 +500,7 @@ fun EditLessonDialog(
                                                     text = { Text(exerciseType.name) },
                                                     onClick = {
                                                         type.value = exerciseType.name
-                                                        exercise.type = exerciseType.name
+                                                        exercise.typeName = exerciseType.name
                                                         expanded.value = false
                                                     })
                                             }
@@ -514,17 +552,20 @@ fun EditLessonDialog(
                                                             })
                                                     }
                                                     Button(onClick = {
-                                                        answers.value = answers.value.remove(answer)
-                                                        exercise.answers = answers.value
+//                                                        answers.value = answers.value.remove(answer)
+                                                        exercise.answers = exercise.answers.remove(answer)
+                                                        answers.value = exercise.answers
+//                                                        exercise.answers = answers.value
                                                     }, Modifier.fillMaxWidth()) { Text("Удалить") }
                                                 }
                                             }
                                         }
 
                                         Button(onClick = {
-                                            exercise.answers = exercise.answers.add(
-                                                CourseCreatingState.Answer(0, "", false)
-                                            )
+//                                            exercise.answers = exercise.answers.add(
+//                                                CourseCreatingState.Answer(0, "", false)
+//                                            )
+                                            exercise.answers = exercise.answers.add(AnswerEntity(0, "", false))
                                             answers.value = exercise.answers
                                         }) { Text("Добавить") }
                                     }
@@ -533,7 +574,9 @@ fun EditLessonDialog(
                                     Row(Modifier.fillMaxWidth()) {
                                         Button(
                                             onClick = {
-                                                exercises.value = exercises.value.remove(exercise)
+                                                lesson.exercises = lesson.exercises.remove(exercise)
+                                                exercises.value = lesson.exercises
+//                                                exercises.remove(exercise)
                                             },
                                             Modifier.weight(0.7f)
                                         ) {
@@ -564,13 +607,20 @@ fun EditLessonDialog(
 //                        }
                     }
                     Button(onClick = {
-                        exercises.value = exercises.value.add(
-                            CourseCreatingState.Exercise(
-                                0, lesson.id, "Без названия", "",
-                                ExerciseType.Choose.name, persistentListOf()
+//                        exercises.value = exercises.value.add(
+//                            CourseCreatingState.Exercise(
+//                                0, lesson.id, "Без названия", "",
+//                                ExerciseType.Choose.name, persistentListOf()
+//                            )
+//                        )
+//                        lesson.exercises = exercises.value
+                        lesson.exercises = lesson.exercises.add(
+                            ExerciseEntity(
+                                0, "Без названия", "",
+                                ExerciseType.Choose.name, persistentListOf<AnswerEntity>()
                             )
                         )
-                        lesson.exercises = exercises.value
+                        exercises.value = lesson.exercises
                     }) { Text("Добавить") }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         if (onDeleteButton != null) {
@@ -661,6 +711,76 @@ fun ChooseSaveOrNotSaveDialog(
                             onClick = {
                                 show.value = false
                                 onSave()
+                            },
+                        ) { Text("Сохранить") }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EditCourseDialog(
+    course: CourseEntity,
+    show: MutableState<Boolean>,
+    onSave: (name: String, description: String, backgroundUrl: String) -> Unit
+) {
+    if (show.value) {
+        Dialog(
+            onDismissRequest = { show.value = false }, DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false,
+                usePlatformDefaultWidth = true,
+            )
+        ) {
+            Card(
+                Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max)
+            ) {
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
+//                        .height(500.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text("Редактирование курса")
+
+                    val name = remember { mutableStateOf(course.name) }
+                    Column(Modifier.fillMaxWidth()) {
+                        Text("Название: ")
+                        OutlinedTextField(
+                            value = name.value,
+                            onValueChange = { value -> name.value = value })
+                    }
+                    val description = remember { mutableStateOf(course.description) }
+                    Column (Modifier.fillMaxWidth()) {
+                        Text("Описание: ")
+                        OutlinedTextField(
+                            value = description.value,
+                            onValueChange = { value -> description.value = value })
+                    }
+                    val backgroundUrl = remember { mutableStateOf(course.backgroundUrl) }
+                    Column(Modifier.fillMaxWidth()) {
+                        Text("URL на картинку для фона: ")
+                        OutlinedTextField(
+                            value = backgroundUrl.value,
+                            onValueChange = { value -> backgroundUrl.value = value })
+                    }
+
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(
+                            modifier = Modifier.padding(end = 5.dp),
+                            onClick = {
+                                show.value = false
+                            },
+                        ) { Text("Отменить") }
+                        TextButton(
+                            onClick = {
+                                show.value = false
+                                onSave(name.value, description.value, backgroundUrl.value)
                             },
                         ) { Text("Сохранить") }
                     }

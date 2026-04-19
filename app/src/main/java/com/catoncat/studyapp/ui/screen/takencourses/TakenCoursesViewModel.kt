@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
-import com.catoncat.studyapp.data.source.UserLocalDataSource
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 import com.catoncat.studyapp.domain.takencourses.GetTakenCoursesUseCase
 import kotlinx.collections.immutable.toPersistentList
@@ -23,8 +22,7 @@ class TakenCoursesViewModel : ViewModel() {
     val uiState: StateFlow<TakenCoursesState> = _uiState.asStateFlow();
     private val actualResult: MutableList<TakenCoursesState.Item> = mutableListOf()
     private val getTakenCoursesUseCase = GetTakenCoursesUseCase(
-        courseRepository = CourseRepository(CourseInfoDataSource(), CourseLocalDataSource(),
-            UserLocalDataSource())
+        courseRepository = CourseRepository(CourseInfoDataSource())
     )
     init {
         getData()

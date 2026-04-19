@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
+import com.catoncat.studyapp.ui.util.ItemCourse
 
 @Composable
 fun TakenCoursesScreen(
@@ -82,7 +83,7 @@ fun TakenCoursesContentState(
     LazyColumn(Modifier.fillMaxSize()) {
         items(currentState.courses) { item ->
             when (item) {
-                is TakenCoursesState.Item.Course -> ItemCourse(item.entity)
+                is TakenCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {})
                 TakenCoursesState.Item.Error -> ItemError()
                 TakenCoursesState.Item.Loading -> ItemLoading()
             }
@@ -90,24 +91,24 @@ fun TakenCoursesContentState(
     }
 }
 
-@Composable
-fun ItemCourse(entity: CourseEntity) {
-    ElevatedCard(
-        Modifier
-            .fillMaxWidth()
-            .height(150.dp)
-            .padding(10.dp)
-    ) {
-        Column(Modifier.fillMaxSize()) {
-            Text(
-                text = entity.name,
-                style = Typography.headlineMedium,
-                modifier = Modifier.padding(5.dp)
-            )
-            Text(text = entity.description)
-        }
-    }
-}
+//@Composable
+//fun ItemCourse(entity: CourseEntity) {
+//    ElevatedCard(
+//        Modifier
+//            .fillMaxWidth()
+//            .height(150.dp)
+//            .padding(10.dp)
+//    ) {
+//        Column(Modifier.fillMaxSize()) {
+//            Text(
+//                text = entity.name,
+//                style = Typography.headlineMedium,
+//                modifier = Modifier.padding(5.dp)
+//            )
+//            Text(text = entity.description)
+//        }
+//    }
+//}
 
 @Composable
 fun ItemLoading() {

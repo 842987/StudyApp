@@ -1,5 +1,8 @@
 package com.catoncat.studyapp.data.source
 
+import android.util.Log
+import androidx.compose.foundation.layout.Column
+import com.catoncat.studyapp.data.dto.UserDto
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -20,21 +23,46 @@ class AuthNetworkDataSource {
 //                addAuthHeader()
 //            }
 //            result.status == HttpStatusCode.Companion.OK
-            val code =
-                Base64.decode(AuthLocalDataSource.getToken()!!.removePrefix("Basic ").toByteArray())
-                    .toString().split(":")
-            val username = code[0]
-            val password = code[1]
-            val userId = Network.supabase.from("users").select {
+
+
+//            val code =
+//                Base64.decode(AuthLocalDataSource.getToken()!!.removePrefix("Basic ").toByteArray())
+//                    .toString().split(":")
+//            val username = code[0]
+//            val password = code[1]
+//            val userId = Network.supabase.from("users").select {
+//                filter {
+//                    eq("username", username)
+//                }
+//            }.decodeSingleOrNull<String>()
+
+            Network.supabase.auth.signInWith(Email) {
+                email = AuthLocalDataSource.email!!
+                password = AuthLocalDataSource.password!!
+            }
+
+            val userID = Network.supabase.auth.currentUserOrNull()!!.id
+
+            AuthLocalDataSource.userDto = Network.supabase.from("users").select(columns = Columns.ALL) {
                 filter {
-                    eq("username", username)
+                    eq("user_id", userID)
                 }
-            }.decodeSingleOrNull<String>()
+            }.decodeSingleOrNull<UserDto>()
 
+//            Log.e(this.javaClass.name, Network.supabase.from("users").select(columns = Columns.raw("id")) {
+//                filter {
+//                    eq("user_id", userID)
+//                }
+//            }.decodeSingleOrNull<String>()?:"Test")
 
-            if (userId != null) {
-               true
-            } else false
+//            AuthLocalDataSource.username =
+//                Network.supabase.from("users").select(columns = Columns.raw("username")) {
+//                    filter {
+//                        eq("user_id", userID)
+//                    }
+//                }.decodeSingleOrNull<Map<String, String>>()!!["username"]
+
+            true
         }
     }
 }

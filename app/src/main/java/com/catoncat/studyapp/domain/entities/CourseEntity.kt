@@ -1,11 +1,13 @@
 package com.catoncat.studyapp.domain.entities
 
+import kotlinx.collections.immutable.PersistentList
+
 
 class CourseEntity(
     val id: Long,
-    val name: String,
-    val description: String,
-    val backgroundUrl: String,
+    var name: String,
+    var description: String,
+    var backgroundUrl: String,
     val creator: UserEntity,
-    val lessons: List<LessonEntity>
+    var lessons: PersistentList<LessonEntity>
 )

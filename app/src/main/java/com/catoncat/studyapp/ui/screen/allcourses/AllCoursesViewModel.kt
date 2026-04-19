@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
-import com.catoncat.studyapp.data.source.UserLocalDataSource
 import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
 import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
@@ -30,8 +29,7 @@ class AllCoursesViewModel : ViewModel() {
     val uiState: StateFlow<AllCoursesState> = _uiState.asStateFlow();
     private val actualResult: MutableList<AllCoursesState.Item> = mutableListOf()
     private val getAllCoursesUseCase = GetAllCoursesUseCase(
-        courseRepository = CourseRepository(CourseInfoDataSource(), CourseLocalDataSource(),
-            UserLocalDataSource())
+        courseRepository = CourseRepository(CourseInfoDataSource())
     )
     init {
         getData()

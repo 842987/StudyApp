@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
+import com.catoncat.studyapp.ui.util.ItemCourse
 
 @Composable
 fun MyCoursesScreen(
@@ -56,7 +57,19 @@ fun MyCoursesScreen(
         is MyCoursesState.Content -> MyCoursesContentState(
             currentState,
             onLoadMore = { viewModel.onIntent(MyCoursesIntent.LoadMore) },
-            onRefresh = { viewModel.onIntent(MyCoursesIntent.Refresh) }
+            onRefresh = { viewModel.onIntent(MyCoursesIntent.Refresh) },
+            onCreate = { name, description ->
+                viewModel.onIntent(
+                    MyCoursesIntent.CreateCourse(
+                        name,
+                        description
+                    )
+                )
+            },
+            onCourseClick = { courseEntity ->
+                viewModel.onIntent(MyCoursesIntent.ChooseCourse(courseEntity))
+                backStack.add(AppRoute.CourseCreating)
+            }
         )
     }
 
@@ -91,24 +104,35 @@ fun MyCoursesLoadingState() {
 fun MyCoursesContentState(
     currentState: MyCoursesState.Content,
     onLoadMore: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onCreate: (name: String, description: String) -> Unit,
+    onCourseClick: (CourseEntity) -> Unit
 ) {
     val showCreateCourseDialog = remember { mutableStateOf(false) }
-    CreateCourseDialog(showCreateCourseDialog, onCreate = {})
+    CreateCourseDialog(showCreateCourseDialog, onCreate = onCreate)
     Box(Modifier.fillMaxSize()) {
-        LazyColumn(Modifier.fillMaxSize().align(Alignment.Center)) {
+        LazyColumn(
+            Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+        ) {
             items(currentState.courses) { item ->
                 when (item) {
-                    is MyCoursesState.Item.Course -> ItemCourse(item.entity)
+                    is MyCoursesState.Item.Course -> ItemCourse(
+                        item.entity, showCreator = false,
+                        onClick = { onCourseClick(item.entity) })
+
                     MyCoursesState.Item.Error -> ItemError()
                     MyCoursesState.Item.Loading -> ItemLoading()
                 }
             }
         }
         FloatingActionButton(
-            onClick = { showCreateCourseDialog.value = true }, modifier = Modifier.align(
-                Alignment.BottomEnd
-            )
+            onClick = { showCreateCourseDialog.value = true }, modifier = Modifier
+                .align(
+                    Alignment.BottomEnd
+                )
+                .padding(5.dp)
         ) {
             Text("+")
         }
@@ -116,7 +140,10 @@ fun MyCoursesContentState(
 }
 
 @Composable
-fun CreateCourseDialog(show: MutableState<Boolean>, onCreate: () -> Unit) {
+fun CreateCourseDialog(
+    show: MutableState<Boolean>,
+    onCreate: (name: String, description: String) -> Unit
+) {
     if (show.value) {
         Dialog(
             onDismissRequest = { show.value = false }, DialogProperties(
@@ -137,6 +164,8 @@ fun CreateCourseDialog(show: MutableState<Boolean>, onCreate: () -> Unit) {
 //                        .height(500.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    Text("Создание курса")
+
                     val name = remember { mutableStateOf("") }
                     Row(Modifier.fillMaxWidth()) {
                         Text("Название: ")
@@ -163,7 +192,7 @@ fun CreateCourseDialog(show: MutableState<Boolean>, onCreate: () -> Unit) {
                         TextButton(
                             onClick = {
                                 show.value = false
-                                onCreate()
+                                onCreate(name.value, description.value)
                             },
                         ) { Text("Создать") }
                     }
@@ -173,25 +202,25 @@ fun CreateCourseDialog(show: MutableState<Boolean>, onCreate: () -> Unit) {
     }
 }
 
-@Composable
-fun ItemCourse(entity: CourseEntity) {
-    ElevatedCard(
-        Modifier
-            .fillMaxWidth()
-            .height(150.dp)
-            .padding(10.dp)
-    ) {
-        Column(Modifier.fillMaxSize()) {
-            Text(
-                text = entity.name,
-                style = Typography.headlineMedium,
-                modifier = Modifier.padding(5.dp)
-            )
-            Text(text = entity.creator.username, style = Typography.bodyLarge)
-            Text(text = entity.description)
-        }
-    }
-}
+//@Composable
+//fun ItemCourse(entity: CourseEntity) {
+//    ElevatedCard(
+//        Modifier
+//            .fillMaxWidth()
+//            .height(150.dp)
+//            .padding(10.dp)
+//    ) {
+//        Column(Modifier.fillMaxSize()) {
+//            Text(
+//                text = entity.name,
+//                style = Typography.headlineMedium,
+//                modifier = Modifier.padding(5.dp)
+//            )
+//            Text(text = entity.creator.username, style = Typography.bodyLarge)
+//            Text(text = entity.description)
+//        }
+//    }
+//}
 
 @Composable
 fun ItemLoading() {

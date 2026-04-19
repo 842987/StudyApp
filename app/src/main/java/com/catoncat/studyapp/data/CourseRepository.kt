@@ -1,22 +1,29 @@
 package com.catoncat.studyapp.data
 
+import androidx.compose.runtime.mutableStateOf
 import com.catoncat.studyapp.data.dto.AnswerDto
+import com.catoncat.studyapp.data.dto.CourseCreateDto
 import com.catoncat.studyapp.data.dto.CourseDto
+import com.catoncat.studyapp.data.dto.CourseUpdateDto
 import com.catoncat.studyapp.data.dto.ExerciseDto
+import com.catoncat.studyapp.data.dto.ExerciseUpdateDto
 import com.catoncat.studyapp.data.dto.LessonDto
+import com.catoncat.studyapp.data.dto.LessonUpdateDto
 import com.catoncat.studyapp.data.dto.RequiredLessonDto
+import com.catoncat.studyapp.data.dto.UserDto
+import com.catoncat.studyapp.data.source.AuthLocalDataSource
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
-import com.catoncat.studyapp.data.source.UserLocalDataSource
+import com.catoncat.studyapp.domain.entities.AnswerEntity
 import com.catoncat.studyapp.domain.entities.CourseEntity
+import com.catoncat.studyapp.domain.entities.ExerciseEntity
 import com.catoncat.studyapp.domain.entities.LessonEntity
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 import com.catoncat.studyapp.domain.entities.UserEntity
+import kotlinx.collections.immutable.persistentListOf
 
 class CourseRepository(
-    private val courseInfoDataSource: CourseInfoDataSource,
-    private val courseLocalDataSource: CourseLocalDataSource,
-    private val userLocalDataSource: UserLocalDataSource
+    private val courseInfoDataSource: CourseInfoDataSource
 ) {
     suspend fun getCourses(page: Int, size: Int): Result<PagingCoursesEntity> {
         return courseInfoDataSource.getCourses(page = page, size = size).mapCatching { dto ->
@@ -32,7 +39,7 @@ class CourseRepository(
                             courseDto.creator?.id ?: return@mapNotNull null,
                             courseDto.creator.name ?: return@mapNotNull null
                         ),
-                        lessons = listOf()
+                        lessons = persistentListOf()
                     )
                 } ?: error("Courses list is null")
             )
@@ -41,7 +48,7 @@ class CourseRepository(
 
     suspend fun getCoursesUserTook(page: Int, size: Int): Result<PagingCoursesEntity> {
         return courseInfoDataSource.getCoursesUserTook(
-            userId = userLocalDataSource.getId(),
+            userId = AuthLocalDataSource.userDto?.id!!,
             page = page,
             size = size
         ).mapCatching { dto ->
@@ -57,7 +64,7 @@ class CourseRepository(
                             courseDto.creator?.id ?: return@mapNotNull null,
                             courseDto.creator.name ?: return@mapNotNull null
                         ),
-                        lessons = listOf()
+                        lessons = persistentListOf()
                     )
                 } ?: error("Courses list is null")
             )
@@ -66,7 +73,7 @@ class CourseRepository(
 
     suspend fun getCoursesCreatedByUser(page: Int, size: Int): Result<PagingCoursesEntity> {
         return courseInfoDataSource.getCoursesCreatedByUser(
-            userId = userLocalDataSource.getId(),
+            userId = AuthLocalDataSource.userDto?.id!!,
             page = page,
             size = size
         ).mapCatching { dto ->
@@ -82,52 +89,61 @@ class CourseRepository(
                             courseDto.creator?.id ?: return@mapNotNull null,
                             courseDto.creator.name ?: return@mapNotNull null
                         ),
-                        lessons = listOf()
+                        lessons = persistentListOf()
                     )
                 } ?: error("Courses list is null")
             )
         }
     }
 
+    suspend fun createCourse(name: String, description: String) {
+        courseInfoDataSource.createCourse(
+            CourseCreateDto(
+                name = name, description = description, creator = AuthLocalDataSource.userDto?.id!!
+            )
+        )
+    }
+
     suspend fun updateCourse(courseEntity: CourseEntity) {
+        val exercises = mutableListOf<ExerciseEntity>()
+        val answers = mutableListOf<AnswerEntity>()
+        courseEntity.lessons.forEach { lesson ->
+            exercises.addAll(lesson.exercises)
+            lesson.exercises.forEach { exercise -> answers.addAll(exercise.answers) }
+        }
         courseInfoDataSource.updateCourse(
-            CourseDto(
+            courseDto = CourseUpdateDto(
                 courseEntity.id,
                 courseEntity.name,
                 courseEntity.description,
                 courseEntity.backgroundUrl,
-//                UserDto(courseEntity.creator.id, courseEntity.creator.username),
-                null,
-                courseEntity.lessons.map { lessonEntity ->
-                    LessonDto(
-                        lessonEntity.id,
-                        lessonEntity.name,
-                        lessonEntity.imageUrl,
-                        lessonEntity.x,
-                        lessonEntity.y,
-                        lessonEntity.exercises.map { exerciseEntity ->
-                            ExerciseDto(
-                                exerciseEntity.id,
-                                exerciseEntity.name,
-                                exerciseEntity.text,
-                                exerciseEntity.typeName,
-                                exerciseEntity.answers.map { answerEntity ->
-                                    AnswerDto(
-                                        answerEntity.id,
-                                        answerEntity.text,
-                                        answerEntity.correct
-                                    )
-                                })
-                        },
-                        lessonEntity.requiredLessons?.map { lessonEntity ->
-                            RequiredLessonDto(
-                                lessonEntity.id,
-                                lessonEntity.name
-                            )
-                        }
+                AuthLocalDataSource.userDto?.id!!
+            ),
+            lessonDtoList = courseEntity.lessons.map { lessonEntity ->
+                LessonUpdateDto(
+                    lessonEntity.id,
+                    lessonEntity.name,
+                    lessonEntity.imageUrl,
+                    lessonEntity.x,
+                    lessonEntity.y,
+                    courseId = courseEntity.id
+                )
+            },
+            exerciseDtoList = exercises.map { exerciseEntity ->
+                ExerciseUpdateDto(
+                    exerciseEntity.id,
+                    exerciseEntity.name,
+                    exerciseEntity.text,
+                    exerciseEntity.typeName
                     )
-                }
-            )
+            },
+            answerDtoList = answers.map { answerEntity ->
+                AnswerDto(
+                    answerEntity.id,
+                    answerEntity.text,
+                    answerEntity.correct
+                )
+            }
         )
     }
 }
