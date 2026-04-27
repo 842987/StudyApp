@@ -10,5 +10,6 @@ class LessonEntity (
     var x: Float,
     var y: Float,
     var exercises: PersistentList<ExerciseEntity>,
-    val requiredLessons: PersistentList<RequiredLessonEntity>?
+    val requiredLessons: PersistentList<RequiredLessonEntity>?,
+    var deleted: Boolean = false
 )

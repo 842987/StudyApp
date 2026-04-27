@@ -4,15 +4,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ExerciseUpdateDto(
+class AnswerUpdateDto (
     @SerialName("id")
-    val id: Long?,
-    @SerialName("name")
-    val name: String?,
+    var id: Long?,
     @SerialName("text")
     val text: String?,
-    @SerialName("type_name")
-    val typeName: String,
-    @SerialName("lesson_id")
-    val lessonId: Long
+    @SerialName("correct")
+    val correct: Boolean,
+    @SerialName("exercise_id")
+    val exerciseId: Long
 )

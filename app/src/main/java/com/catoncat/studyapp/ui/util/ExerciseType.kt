@@ -1,6 +1,10 @@
 package com.catoncat.studyapp.ui.util
 
-enum class ExerciseType(name: String) {
+enum class ExerciseType(val typeName: String) {
     Choose("Choose"),
-    Input("Input")
+    Input("Input");
+
+    override fun toString(): String {
+        return name
+    }
 }

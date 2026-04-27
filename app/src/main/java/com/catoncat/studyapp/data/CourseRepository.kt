@@ -2,6 +2,7 @@ package com.catoncat.studyapp.data
 
 import androidx.compose.runtime.mutableStateOf
 import com.catoncat.studyapp.data.dto.AnswerDto
+import com.catoncat.studyapp.data.dto.AnswerUpdateDto
 import com.catoncat.studyapp.data.dto.CourseCreateDto
 import com.catoncat.studyapp.data.dto.CourseDto
 import com.catoncat.studyapp.data.dto.CourseUpdateDto
@@ -19,8 +20,10 @@ import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.domain.entities.ExerciseEntity
 import com.catoncat.studyapp.domain.entities.LessonEntity
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
+import com.catoncat.studyapp.domain.entities.RequiredLessonEntity
 import com.catoncat.studyapp.domain.entities.UserEntity
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 
 class CourseRepository(
     private val courseInfoDataSource: CourseInfoDataSource
@@ -104,13 +107,99 @@ class CourseRepository(
         )
     }
 
-    suspend fun updateCourse(courseEntity: CourseEntity) {
-        val exercises = mutableListOf<ExerciseEntity>()
-        val answers = mutableListOf<AnswerEntity>()
-        courseEntity.lessons.forEach { lesson ->
-            exercises.addAll(lesson.exercises)
-            lesson.exercises.forEach { exercise -> answers.addAll(exercise.answers) }
+    suspend fun getCourse(courseEntity: CourseEntity): Result<CourseEntity> {
+        return courseInfoDataSource.getCourse(courseEntity.id).mapCatching { courseDto ->
+            CourseEntity(
+                courseDto.id!!,
+                courseEntity.name,
+                courseDto.description!!,
+                courseDto.backgroundUrl!!,
+                UserEntity(courseDto.creator?.id!!, courseDto.creator.name!!),
+                courseDto.lessons.orEmpty().map { lessonDto ->
+                    LessonEntity(
+                        lessonDto.id,
+                        lessonDto.name!!,
+                        lessonDto.imageUrl!!,
+                        lessonDto.x!!,
+                        lessonDto.y!!,
+                        lessonDto.exercises.orEmpty().map { exerciseDto ->
+                            ExerciseEntity(
+                                exerciseDto.id,
+                                exerciseDto.name!!,
+                                exerciseDto.text!!,
+                                exerciseDto.typeName!!,
+                                exerciseDto.answers.orEmpty().map { answerDto ->
+                                    AnswerEntity(
+                                        answerDto.id!!,
+                                        answerDto.text!!,
+                                        answerDto.correct!!
+                                    )
+                                }.toPersistentList()
+                            )
+                        }.toPersistentList(),
+                        lessonDto.requiredLessons.orEmpty().map { requiredLessonDto ->
+                            RequiredLessonEntity(
+                                requiredLessonDto.id!!,
+                                requiredLessonDto.name!!
+                            )
+                        }.toPersistentList()
+                    )
+                }.toPersistentList()
+            )
         }
+    }
+
+    suspend fun updateCourse(courseEntity: CourseEntity) {
+        val lessons = mutableListOf<LessonUpdateDto>()
+        val exercises = mutableListOf<ExerciseUpdateDto>()
+        val answers = mutableListOf<AnswerUpdateDto>()
+        val lessonsToDelete = mutableListOf<Long>()
+        val exercisesToDelete = mutableListOf<Long>()
+        val answersToDelete = mutableListOf<Long>()
+
+        courseEntity.lessons.forEach { lessonEntity ->
+            if (lessonEntity.deleted) {
+                lessonsToDelete.add(lessonEntity.id!!)
+            } else {
+                val lessonDto = LessonUpdateDto(
+                    lessonEntity.id,
+                    lessonEntity.name,
+                    lessonEntity.imageUrl,
+                    lessonEntity.x,
+                    lessonEntity.y,
+                    courseId = courseEntity.id
+                )
+                lessons.add(lessonDto)
+            }
+            lessonEntity.exercises.forEach { exerciseEntity ->
+                if (exerciseEntity.deleted) {
+                    exercisesToDelete.add(exerciseEntity.id!!)
+                } else {
+                    val exerciseDto = ExerciseUpdateDto(
+                        exerciseEntity.id,
+                        exerciseEntity.name,
+                        exerciseEntity.text,
+                        exerciseEntity.typeName,
+                        lessonEntity.id!!
+                    )
+                    exercises.add(exerciseDto)
+                }
+                exerciseEntity.answers.forEach { answerEntity ->
+                    if (answerEntity.deleted) {
+                        answersToDelete.add(answerEntity.id!!)
+                    } else {
+                        val answerDto = AnswerUpdateDto(
+                            answerEntity.id,
+                            answerEntity.text,
+                            answerEntity.correct,
+                            exerciseEntity.id!!
+                        )
+                        answers.add(answerDto)
+                    }
+                }
+            }
+        }
+
         courseInfoDataSource.updateCourse(
             courseDto = CourseUpdateDto(
                 courseEntity.id,
@@ -119,31 +208,12 @@ class CourseRepository(
                 courseEntity.backgroundUrl,
                 AuthLocalDataSource.userDto?.id!!
             ),
-            lessonDtoList = courseEntity.lessons.map { lessonEntity ->
-                LessonUpdateDto(
-                    lessonEntity.id,
-                    lessonEntity.name,
-                    lessonEntity.imageUrl,
-                    lessonEntity.x,
-                    lessonEntity.y,
-                    courseId = courseEntity.id
-                )
-            },
-            exerciseDtoList = exercises.map { exerciseEntity ->
-                ExerciseUpdateDto(
-                    exerciseEntity.id,
-                    exerciseEntity.name,
-                    exerciseEntity.text,
-                    exerciseEntity.typeName
-                    )
-            },
-            answerDtoList = answers.map { answerEntity ->
-                AnswerDto(
-                    answerEntity.id,
-                    answerEntity.text,
-                    answerEntity.correct
-                )
-            }
+            lessonDtoList = lessons,
+            exerciseDtoList = exercises,
+            answerDtoList = answers,
+            lessonsToDeleteIdList = lessonsToDelete,
+            exercisesToDeleteIdList = exercisesToDelete,
+            answersDeleteIdList = answersToDelete
         )
     }
 }

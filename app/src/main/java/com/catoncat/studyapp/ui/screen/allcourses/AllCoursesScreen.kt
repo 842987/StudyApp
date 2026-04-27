@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -37,7 +38,6 @@ fun AllCoursesScreen(
     viewModel: AllCoursesViewModel = viewModel<AllCoursesViewModel>(),
     backStack: SnapshotStateList<AppRoute>
 ) {
-
     val state by viewModel.uiState.collectAsState();
 
     when (val currentState = state) {
@@ -87,16 +87,12 @@ fun AllCoursesContentState(
     onLoadMore: () -> Unit,
     onRefresh: () -> Unit
 ) {
-    LazyColumn(Modifier.fillMaxSize()) {
-        for (i in 0..10) {
-
-
-            items(currentState.courses) { item ->
-                when (item) {
-                    is AllCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {})
-                    AllCoursesState.Item.Error -> ItemError()
-                    AllCoursesState.Item.Loading -> ItemLoading()
-                }
+    LazyColumn(Modifier.fillMaxSize(),) {
+        items(currentState.courses) { item ->
+            when (item) {
+                is AllCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {})
+                AllCoursesState.Item.Error -> ItemError()
+                AllCoursesState.Item.Loading -> ItemLoading()
             }
         }
     }

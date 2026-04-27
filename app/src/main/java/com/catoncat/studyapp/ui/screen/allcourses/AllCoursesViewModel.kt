@@ -31,6 +31,7 @@ class AllCoursesViewModel : ViewModel() {
     private val getAllCoursesUseCase = GetAllCoursesUseCase(
         courseRepository = CourseRepository(CourseInfoDataSource())
     )
+
     init {
         getData()
     }

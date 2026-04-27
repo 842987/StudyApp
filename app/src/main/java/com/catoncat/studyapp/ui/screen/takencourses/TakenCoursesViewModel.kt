@@ -37,6 +37,10 @@ class TakenCoursesViewModel : ViewModel() {
             is TakenCoursesIntent.Refresh -> {
                 getData(offset = if (actualResult.isEmpty()) 0 else actualResult.size - 1)
             }
+
+            is TakenCoursesIntent.ChooseCourse -> {
+                CourseLocalDataSource.currentCourse = intent.course
+            }
         }
     }
 

@@ -9,14 +9,14 @@ data class LessonDto(
     val id: Long?,
     @SerialName("name")
     val name: String?,
-    @SerialName("imageUrl")
+    @SerialName("image_url")
     val imageUrl: String?,
     @SerialName("x")
     val x: Float?,
     @SerialName("y")
     val y: Float?,
-    @SerialName("exercises")
+    @SerialName("exercise")
     val exercises: List<ExerciseDto>?,
-    @SerialName("requiredLessons")
-    val requiredLessons: List<RequiredLessonDto>?
+    @SerialName("required_lesson")
+    val requiredLessons: List<RequiredLessonDto>? = null
 )

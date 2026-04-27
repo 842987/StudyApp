@@ -2,6 +2,7 @@ package com.catoncat.studyapp.data.source
 
 import android.util.Log
 import com.catoncat.studyapp.data.dto.AnswerDto
+import com.catoncat.studyapp.data.dto.AnswerUpdateDto
 import com.catoncat.studyapp.data.dto.CourseCreateDto
 import com.catoncat.studyapp.data.dto.CourseDto
 import com.catoncat.studyapp.data.dto.CourseUpdateDto
@@ -147,11 +148,14 @@ class CourseInfoDataSource {
 
     suspend fun getCourse(courseId: Long): Result<CourseDto> = withContext(Dispatchers.IO) {
         runCatching {
-            val result = Network.supabase.from("course").select {
-                filter {
-                    eq("id", courseId)
-                }
-            }.decodeSingle<CourseDto>()
+            val result = Network.supabase.from("course")
+                .select(Columns.raw("*, creator:users(id, username, avatar_url), lesson(*, exercise(*, answer(*)))")) {
+                    filter {
+                        eq("id", courseId)
+                    }
+                }.decodeSingle<CourseDto>()
+            Log.e("CourseInfoDataSource", result.toString())
+//            throw RuntimeException("Test")
             result
         }
     }
@@ -198,7 +202,10 @@ class CourseInfoDataSource {
         courseDto: CourseUpdateDto,
         lessonDtoList: List<LessonUpdateDto>,
         exerciseDtoList: List<ExerciseUpdateDto>,
-        answerDtoList: List<AnswerDto>
+        answerDtoList: List<AnswerUpdateDto>,
+        lessonsToDeleteIdList: List<Long>,
+        exercisesToDeleteIdList: List<Long>,
+        answersDeleteIdList: List<Long>,
     ) = withContext(Dispatchers.IO) {
         runCatching {
 //            val result = Network.client.put("${Network.HOST}/api/course/") {
@@ -207,6 +214,8 @@ class CourseInfoDataSource {
 //            if (result.status != HttpStatusCode.OK) {
 //                error("Status: ${result.status}")
 //            }
+            Log.e("CourseInfoDataSource", "Updating course")
+
             Network.supabase.from("course").update({
                 set("name", courseDto.name)
                 set("description", courseDto.description)
@@ -216,6 +225,12 @@ class CourseInfoDataSource {
                     eq("id", courseDto.id!!)
                 }
             }
+            val tag = "CourseInfoDataSource"
+            Log.e(tag, lessonDtoList.toString())
+
+//            Network.supabase.from("lesson")
+//                .insert(LessonUpdateDto(3, "test", "test", 0.5f, 0.5f, 8))
+
             Network.supabase.from("lesson").upsert(lessonDtoList) {
                 onConflict = "id"
             }
@@ -224,6 +239,22 @@ class CourseInfoDataSource {
             }
             Network.supabase.from("answer").upsert(answerDtoList) {
                 onConflict = "id"
+            }
+
+            Network.supabase.from("answer").delete {
+                filter {
+                    isIn("id", answersDeleteIdList)
+                }
+            }
+            Network.supabase.from("exercise").delete {
+                filter {
+                    isIn("id", exercisesToDeleteIdList)
+                }
+            }
+            Network.supabase.from("lesson").delete {
+                filter {
+                    isIn("id", lessonsToDeleteIdList)
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesScreen
 import com.catoncat.studyapp.ui.screen.auth.AuthScreen
 import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingScreen
+import com.catoncat.studyapp.ui.screen.courseviewing.CourseViewingScreen
 import com.catoncat.studyapp.ui.screen.mycourses.MyCoursesScreen
 import com.catoncat.studyapp.ui.screen.settings.SettingsScreen
 import com.catoncat.studyapp.ui.screen.takencourses.TakenCoursesScreen
@@ -51,6 +52,9 @@ fun NavRoute(
             entry<AppRoute.Auth> {
                 AuthScreen(backStack = backStack)
             }
+            entry<AppRoute.CourseViewing> {
+                CourseViewingScreen(backStack = backStack)
+            }
         }
     )
 }
@@ -61,7 +65,7 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>) {
     val currentRoute = backStack.last();
 
 
-    if (currentRoute != AppRoute.CourseCreating && currentRoute != AppRoute.Auth) {
+    if (currentRoute != AppRoute.CourseCreating && currentRoute != AppRoute.Auth && currentRoute != AppRoute.CourseViewing) {
         ShortNavigationBar {
             ShortNavigationBarItem(
                 currentRoute == AppRoute.AllCourses,

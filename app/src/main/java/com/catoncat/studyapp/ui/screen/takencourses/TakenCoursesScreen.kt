@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
+import com.catoncat.studyapp.ui.screen.mycourses.MyCoursesIntent
 import com.catoncat.studyapp.ui.theme.Typography
 import com.catoncat.studyapp.ui.util.ItemCourse
 
@@ -43,7 +44,11 @@ fun TakenCoursesScreen(
         is TakenCoursesState.Content -> TakenCoursesContentState(
             currentState,
             onLoadMore = { viewModel.onIntent(TakenCoursesIntent.LoadMore) },
-            onRefresh = { TakenCoursesIntent.Refresh }
+            onRefresh = { viewModel.onIntent(TakenCoursesIntent.Refresh) },
+            onCourseChosen = { course ->
+                viewModel.onIntent(TakenCoursesIntent.ChooseCourse(course))
+                backStack.add(AppRoute.CourseViewing)
+            }
         )
     }
 
@@ -78,12 +83,15 @@ fun TakenCoursesLoadingState() {
 fun TakenCoursesContentState(
     currentState: TakenCoursesState.Content,
     onLoadMore: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onCourseChosen: (course: CourseEntity) -> Unit
 ) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(currentState.courses) { item ->
             when (item) {
-                is TakenCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {})
+                is TakenCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {
+                    onCourseChosen(item.entity)
+                })
                 TakenCoursesState.Item.Error -> ItemError()
                 TakenCoursesState.Item.Loading -> ItemLoading()
             }

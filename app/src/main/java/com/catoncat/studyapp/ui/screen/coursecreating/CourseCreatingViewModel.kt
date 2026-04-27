@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
+import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
 import com.catoncat.studyapp.domain.entities.AnswerEntity
 import com.catoncat.studyapp.domain.entities.CourseEntity
@@ -27,51 +28,59 @@ class CourseCreatingViewModel : ViewModel() {
     private val updateCourseUseCase = UpdateCourseUseCase(
         courseRepository = CourseRepository(CourseInfoDataSource())
     )
-
-    init {
-        getData()
-    }
+    private val getCourseUseCase = GetCourseUseCase(
+        courseRepository = CourseRepository(
+            CourseInfoDataSource()
+        )
+    )
 
     fun onIntent(intent: CourseCreatingIntent) {
         when (intent) {
             is CourseCreatingIntent.UpdateCourse -> viewModelScope.launch {
                 updateCourseUseCase.invoke(
                     intent.course
-//                    CourseEntity(
-//                        intent.course.id,
-//                        intent.course.name,
-//                        intent.course.description,
-//                        intent.course.background,
-//                        UserEntity(0, ""),
-//                        intent.course.lessons.map { lesson ->
-//                            LessonEntity(
-//                                lesson.id,
-//                                lesson.name,
-//                                lesson.image,
-//                                lesson.x,
-//                                lesson.y,
-//                                lesson.exercises.map { exercise ->
-//                                    ExerciseEntity(
-//                                        exercise.id,
-//                                        exercise.name,
-//                                        exercise.text,
-//                                        exercise.type,
-//                                        exercise.answers.map { answer ->
-//                                            AnswerEntity(
-//                                                answer.id,
-//                                                answer.text,
-//                                                answer.correct
-//                                            )
-//                                        }
-//                                    )
-//                                }, null
-//                            )
-//                        }
-//                    )
+/*                    CourseEntity(
+                        intent.course.id,
+                        intent.course.name,
+                        intent.course.description,
+                        intent.course.background,
+                        UserEntity(0, ""),
+                        intent.course.lessons.map { lesson ->
+                            LessonEntity(
+                                lesson.id,
+                                lesson.name,
+                                lesson.image,
+                                lesson.x,
+                                lesson.y,
+                                lesson.exercises.map { exercise ->
+                                    ExerciseEntity(
+                                        exercise.id,
+                                        exercise.name,
+                                        exercise.text,
+                                        exercise.type,
+                                        exercise.answers.map { answer ->
+                                            AnswerEntity(
+                                                answer.id,
+                                                answer.text,
+                                                answer.correct
+                                            )
+                                        }
+                                    )
+                                }, null
+                            )
+                        }
+                    )*/
 
                 )
+
             }
+
+            CourseCreatingIntent.Refresh -> getData()
         }
+    }
+
+    init {
+        getData()
     }
 
     fun getData() {
@@ -88,13 +97,24 @@ class CourseCreatingViewModel : ViewModel() {
 //                )
 //            )
 
-            _uiState.emit(
-                CourseCreatingState.Content(
-                    CourseLocalDataSource.currentCourse!!
-//                    CourseCreatingState.Course(CourseLocalDataSource.currentCourse, "Test", "Test","Test", persistentListOf())
-//                    persistentListOf(CourseCreatingState.Exercise(null, "Test", "Test", "Choose", persistentListOf()))
-                )
-            )
+            getCourseUseCase.invoke(CourseLocalDataSource.currentCourse!!)
+                .onSuccess { courseEntity ->
+                    _uiState.emit(CourseCreatingState.Content(courseEntity))
+                }.onFailure { throwable ->
+                    _uiState.emit(
+                        CourseCreatingState.Error(
+                            throwable.message ?: "Ошибка"
+                        )
+                    )
+                }
+
+//            _uiState.emit(
+//                CourseCreatingState.Content(
+//
+////                    CourseCreatingState.Course(CourseLocalDataSource.currentCourse, "Test", "Test","Test", persistentListOf())
+////                    persistentListOf(CourseCreatingState.Exercise(null, "Test", "Test", "Choose", persistentListOf()))
+//                )
+//            )
         }
     }
 

@@ -11,8 +11,8 @@ data class ExerciseDto(
     val name: String?,
     @SerialName("text")
     val text: String?,
-    @SerialName("typeName")
+    @SerialName("type_name")
     val typeName: String?,
-    @SerialName("answers")
+    @SerialName("answer")
     val answers: List<AnswerDto>?
 )

@@ -2,15 +2,20 @@ package com.catoncat.studyapp.data.source
 
 import android.net.http.HttpEngine
 import android.util.Log
+import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.logging.LogLevel
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.PropertyConversionMethod
+import io.github.jan.supabase.serializer.KotlinXSerializer
+import io.github.jan.supabase.supabaseJson
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.api.SetupRequest.install
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.ANDROID
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.ContentType
@@ -45,6 +50,7 @@ object Network {
 //            }
 //        }
 //    }
+    @OptIn(SupabaseInternal::class)
     val supabase = createSupabaseClient(
         supabaseUrl = "https://yjhpwtkydrepghwxzwlw.supabase.co",
         supabaseKey = "sb_publishable_tiyHL9LCY3C6TzmsvWyGfA_NGVvngS6"
@@ -53,9 +59,24 @@ object Network {
 //            defaultSchema = "schema" // default: "public"
 //            propertyConversionMethod =
 //                PropertyConversionMethod.SERIAL_NAME // default: PropertyConversionMethod.CAMEL_CASE_TO_SNAKE_CASE
-
-
         }
+
+//        defaultSerializer = KotlinXSerializer(
+//            Json(supabaseJson) {
+//                explicitNulls = false
+//            }
+//        )
+
         install(Auth)
+        defaultLogLevel = LogLevel.INFO
+        httpConfig {
+            install(Logging) {
+                level = io.ktor.client.plugins.logging.LogLevel.ALL
+                logger = Logger.ANDROID
+            }
+//            Logging {
+//                level = io
+//            }
+        }
     }
 }

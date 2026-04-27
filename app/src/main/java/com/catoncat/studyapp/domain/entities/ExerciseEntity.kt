@@ -8,5 +8,6 @@ class ExerciseEntity(
     var name: String,
     var text: String,
     var typeName: String,
-    var answers: PersistentList<AnswerEntity>
+    var answers: PersistentList<AnswerEntity>,
+    var deleted: Boolean = false
 )
