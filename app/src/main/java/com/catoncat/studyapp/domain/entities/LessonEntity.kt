@@ -6,10 +6,14 @@ import kotlinx.collections.immutable.PersistentList
 class LessonEntity (
     val id: Long?,
     var name: String,
-    val imageUrl: String,
+    var imageUrl: String,
+    var imageUrlOnCompleted: String,
+    var imageUrlOnLocked: String,
     var x: Float,
     var y: Float,
     var exercises: PersistentList<ExerciseEntity>,
-    val requiredLessons: PersistentList<RequiredLessonEntity>?,
+    var requiredLessons: PersistentList<Long>,
+    val opened: Boolean = false,
+    val completed: Boolean = false,
     var deleted: Boolean = false
 )

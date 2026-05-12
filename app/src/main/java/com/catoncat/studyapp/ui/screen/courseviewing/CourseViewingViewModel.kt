@@ -7,6 +7,7 @@ import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
+import com.catoncat.studyapp.domain.courseviewing.CompleteLessonUseCase
 import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingIntent
 import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +26,20 @@ class CourseViewingViewModel: ViewModel() {
             CourseInfoDataSource()
         )
     )
+    private val completeLessonUserCase = CompleteLessonUseCase(
+        courseRepository = CourseRepository(
+            CourseInfoDataSource()
+        )
+    )
 
     fun onIntent(intent: CourseViewingIntent) {
         when (intent) {
             CourseViewingIntent.Refresh -> getData()
+            is CourseViewingIntent.CompleteLesson -> {
+                viewModelScope.launch {
+                    completeLessonUserCase.invoke(intent.lessonId)
+                }
+            }
         }
     }
 
@@ -46,7 +57,7 @@ class CourseViewingViewModel: ViewModel() {
                 }.onFailure { throwable ->
                     _uiState.emit(
                         CourseViewingState.Error(
-                            throwable.message ?: "Ошибка"
+                            throwable.message ?: "Возникло исключение без сообщения"
                         )
                     )
                 }

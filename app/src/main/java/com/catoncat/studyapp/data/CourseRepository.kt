@@ -1,26 +1,18 @@
 package com.catoncat.studyapp.data
 
-import androidx.compose.runtime.mutableStateOf
-import com.catoncat.studyapp.data.dto.AnswerDto
+import android.util.Log
 import com.catoncat.studyapp.data.dto.AnswerUpdateDto
 import com.catoncat.studyapp.data.dto.CourseCreateDto
-import com.catoncat.studyapp.data.dto.CourseDto
 import com.catoncat.studyapp.data.dto.CourseUpdateDto
-import com.catoncat.studyapp.data.dto.ExerciseDto
 import com.catoncat.studyapp.data.dto.ExerciseUpdateDto
-import com.catoncat.studyapp.data.dto.LessonDto
 import com.catoncat.studyapp.data.dto.LessonUpdateDto
-import com.catoncat.studyapp.data.dto.RequiredLessonDto
-import com.catoncat.studyapp.data.dto.UserDto
 import com.catoncat.studyapp.data.source.AuthLocalDataSource
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
-import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.domain.entities.AnswerEntity
 import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.domain.entities.ExerciseEntity
 import com.catoncat.studyapp.domain.entities.LessonEntity
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
-import com.catoncat.studyapp.domain.entities.RequiredLessonEntity
 import com.catoncat.studyapp.domain.entities.UserEntity
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -47,6 +39,11 @@ class CourseRepository(
                 } ?: error("Courses list is null")
             )
         }
+    }
+
+    suspend fun addLessonToCompletedLessons(lessonId: Long) {
+        courseInfoDataSource.insertToUsersCompletedLesson(mapOf(Pair("user_id",
+            AuthLocalDataSource.userDto?.id!!), Pair("lesson_id", lessonId)))
     }
 
     suspend fun getCoursesUserTook(page: Int, size: Int): Result<PagingCoursesEntity> {
@@ -116,10 +113,29 @@ class CourseRepository(
                 courseDto.backgroundUrl!!,
                 UserEntity(courseDto.creator?.id!!, courseDto.creator.name!!),
                 courseDto.lessons.orEmpty().map { lessonDto ->
+                    var opened = true
+                    val requiredLessonsId =
+                        lessonDto.requiredLessons.orEmpty().map { requiredLessonDto ->
+//                                RequiredLessonEntity(
+//                                   requiredLessonDto.id!!,
+//                                    requiredLessonDto.name!!
+//                                )
+                            if (!requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id)) {
+                                opened = false
+                            }
+
+                            Log.d("CourseRepository", lessonDto.id.toString())
+                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.size.toString())
+                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id).toString())
+                            Log.d("CourseRepository", opened.toString())
+                            requiredLessonDto.id!!
+                        }.toPersistentList()
                     LessonEntity(
                         lessonDto.id,
                         lessonDto.name!!,
                         lessonDto.imageUrl!!,
+                        lessonDto.imageUrlOnCompleted,
+                        lessonDto.imageUrlOnLocked,
                         lessonDto.x!!,
                         lessonDto.y!!,
                         lessonDto.exercises.orEmpty().map { exerciseDto ->
@@ -137,16 +153,18 @@ class CourseRepository(
                                 }.toPersistentList()
                             )
                         }.toPersistentList(),
-                        lessonDto.requiredLessons.orEmpty().map { requiredLessonDto ->
-                            RequiredLessonEntity(
-                                requiredLessonDto.id!!,
-                                requiredLessonDto.name!!
-                            )
-                        }.toPersistentList()
+                        requiredLessons = requiredLessonsId,
+                        opened = opened,
+                        completed = lessonDto.usersCompletedId.contains(AuthLocalDataSource.userDto?.id!!)
                     )
                 }.toPersistentList()
             )
         }
+    }
+
+
+    suspend fun addCourseToUserTakenCourses(courseId: Long) {
+        courseInfoDataSource.insertToUsersTakenCourse(courseId, AuthLocalDataSource.userDto?.id!!)
     }
 
     suspend fun updateCourse(courseEntity: CourseEntity) {

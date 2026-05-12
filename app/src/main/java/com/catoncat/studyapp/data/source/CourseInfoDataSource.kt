@@ -1,15 +1,14 @@
 package com.catoncat.studyapp.data.source
 
 import android.util.Log
-import com.catoncat.studyapp.data.dto.AnswerDto
 import com.catoncat.studyapp.data.dto.AnswerUpdateDto
 import com.catoncat.studyapp.data.dto.CourseCreateDto
 import com.catoncat.studyapp.data.dto.CourseDto
 import com.catoncat.studyapp.data.dto.CourseUpdateDto
-import com.catoncat.studyapp.data.dto.ExerciseDto
 import com.catoncat.studyapp.data.dto.ExerciseUpdateDto
 import com.catoncat.studyapp.data.dto.LessonUpdateDto
 import com.catoncat.studyapp.data.dto.PagingAllCoursesDto
+import com.catoncat.studyapp.data.dto.RequiredLessonDto
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Count
@@ -149,11 +148,26 @@ class CourseInfoDataSource {
     suspend fun getCourse(courseId: Long): Result<CourseDto> = withContext(Dispatchers.IO) {
         runCatching {
             val result = Network.supabase.from("course")
-                .select(Columns.raw("*, creator:users(id, username, avatar_url), lesson(*, exercise(*, answer(*)))")) {
+                .select(Columns.raw("*, " +
+                        "creator:users(id, username, avatar_url), " +
+                        "lesson(*, exercise(*, answer(*)), users_completed_id:users_completed_lesson(user_id))")) {
                     filter {
                         eq("id", courseId)
                     }
                 }.decodeSingle<CourseDto>()
+//            , lesson_required_lesson!lesson_id(required_lesson_id) required_lesson:lesson!lesson_id(required_lesson_id,users_completed_id:users(id))
+            result.lessons?.forEach { lessonDto ->
+                val requiredLessons = Network.supabase.from("lesson_required_lesson")
+                    .select(Columns.raw("id:required_lesson_id, users_completed_lesson:lesson!required_lesson_id(users_completed_lesson(user_id))")) {
+                    filter{
+                        eq("lesson_id", lessonDto.id!!)
+                    }
+                }.decodeList<RequiredLessonDto>()
+                lessonDto.requiredLessons = requiredLessons
+            }
+//            result.lessons.forEach { lessonDto ->
+//                val requiredLesson = Network.supabase.from("lesson_required_lesson")
+//            }
             Log.e("CourseInfoDataSource", result.toString())
 //            throw RuntimeException("Test")
             result
@@ -192,11 +206,21 @@ class CourseInfoDataSource {
 //        }
 //    }
 
+    suspend fun insertToUsersCompletedLesson(body: Map<String, Long>) {
+        Network.supabase.from("users_completed_lesson").insert(body)
+    }
+
     suspend fun createCourse(courseDto: CourseCreateDto) = withContext(Dispatchers.IO) {
         runCatching {
             Log.d("Course creating", Network.supabase.from("course").insert(courseDto).data)
         }
     }
+
+    suspend fun insertToUsersTakenCourse(courseId: Long, userId: Long) =
+        withContext(Dispatchers.IO) {
+            Network.supabase.from("users_taken_course")
+                .insert(mapOf(Pair("course_id", courseId), Pair("user_id", userId)))
+        }
 
     suspend fun updateCourse(
         courseDto: CourseUpdateDto,

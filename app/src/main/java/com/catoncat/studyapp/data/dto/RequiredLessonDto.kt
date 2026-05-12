@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data class RequiredLessonDto(
     @SerialName("id")
     val id: Long?,
-    @SerialName("name")
-    val name: String?
+//    @SerialName("name")
+//    val name: String?
+    @SerialName("users_completed_lesson")
+    val usersCompletedLesson: Map<String, List<Long>>
 )

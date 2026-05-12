@@ -1,5 +1,6 @@
 package com.catoncat.studyapp.ui.screen.coursecreating
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
@@ -39,40 +40,44 @@ class CourseCreatingViewModel : ViewModel() {
             is CourseCreatingIntent.UpdateCourse -> viewModelScope.launch {
                 updateCourseUseCase.invoke(
                     intent.course
-/*                    CourseEntity(
-                        intent.course.id,
-                        intent.course.name,
-                        intent.course.description,
-                        intent.course.background,
-                        UserEntity(0, ""),
-                        intent.course.lessons.map { lesson ->
-                            LessonEntity(
-                                lesson.id,
-                                lesson.name,
-                                lesson.image,
-                                lesson.x,
-                                lesson.y,
-                                lesson.exercises.map { exercise ->
-                                    ExerciseEntity(
-                                        exercise.id,
-                                        exercise.name,
-                                        exercise.text,
-                                        exercise.type,
-                                        exercise.answers.map { answer ->
-                                            AnswerEntity(
-                                                answer.id,
-                                                answer.text,
-                                                answer.correct
-                                            )
-                                        }
-                                    )
-                                }, null
-                            )
-                        }
-                    )*/
+                    /*                    CourseEntity(
+                                            intent.course.id,
+                                            intent.course.name,
+                                            intent.course.description,
+                                            intent.course.background,
+                                            UserEntity(0, ""),
+                                            intent.course.lessons.map { lesson ->
+                                                LessonEntity(
+                                                    lesson.id,
+                                                    lesson.name,
+                                                    lesson.image,
+                                                    lesson.x,
+                                                    lesson.y,
+                                                    lesson.exercises.map { exercise ->
+                                                        ExerciseEntity(
+                                                            exercise.id,
+                                                            exercise.name,
+                                                            exercise.text,
+                                                            exercise.type,
+                                                            exercise.answers.map { answer ->
+                                                                AnswerEntity(
+                                                                    answer.id,
+                                                                    answer.text,
+                                                                    answer.correct
+                                                                )
+                                                            }
+                                                        )
+                                                    }, null
+                                                )
+                                            }
+                                        )*/
 
                 )
-
+                intent.course.lessons.forEach { lessonEntity ->
+                    lessonEntity.exercises.forEach { exercise ->
+                        Log.d("CourseCreatingViewModel", exercise.name)
+                    }
+                }
             }
 
             CourseCreatingIntent.Refresh -> getData()

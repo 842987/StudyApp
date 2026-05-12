@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,8 +30,10 @@ import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesViewModel
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel<SettingsViewModel>(),
                    backStack: SnapshotStateList<AppRoute>) {
-    val state by viewModel.uiState.collectAsState();
-    viewModel.getData()
+    val state by viewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) {
+        viewModel.getData()
+    }
     when (val currentState = state) {
         is SettingsState.Content -> ContentState(currentState, onLogOut = {
             viewModel.onIntent(SettingsIntent.LogOut)

@@ -7,6 +7,7 @@ import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
+import com.catoncat.studyapp.domain.allcourses.TakeCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
 import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
@@ -31,12 +32,21 @@ class AllCoursesViewModel : ViewModel() {
     private val getAllCoursesUseCase = GetAllCoursesUseCase(
         courseRepository = CourseRepository(CourseInfoDataSource())
     )
+    private val takeCourseUseCase = TakeCourseUseCase(
+        courseRepository = CourseRepository(
+            CourseInfoDataSource()
+        )
+    )
 
-    init {
-        getData()
-    }
 
-    fun onIntent(intent: AllCoursesIntent) {
+//    init {
+//        getData()
+//    }
+
+
+    fun onIntent(intent:
+
+                 AllCoursesIntent) {
         when (intent) {
             is AllCoursesIntent.LoadMore -> {
                 getData(offset = actualResult.size)
@@ -44,6 +54,12 @@ class AllCoursesViewModel : ViewModel() {
 
             is AllCoursesIntent.Refresh -> {
                 getData(offset = if (actualResult.isEmpty()) 0 else actualResult.size - 1)
+            }
+
+            is AllCoursesIntent.TakeCourse -> {
+                viewModelScope.launch {
+                    takeCourseUseCase.invoke(intent.courseId)
+                }
             }
         }
     }

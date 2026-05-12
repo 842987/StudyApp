@@ -8,13 +8,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +38,10 @@ fun TakenCoursesScreen(
 ) {
 
     val state by viewModel.uiState.collectAsState();
+
+    LaunchedEffect(Unit) {
+        viewModel.getData()
+    }
 
     when (val currentState = state) {
         is TakenCoursesState.Error -> TakenCoursesErrorState(
@@ -86,14 +95,36 @@ fun TakenCoursesContentState(
     onRefresh: () -> Unit,
     onCourseChosen: (course: CourseEntity) -> Unit
 ) {
-    LazyColumn(Modifier.fillMaxSize()) {
-        items(currentState.courses) { item ->
-            when (item) {
-                is TakenCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {
-                    onCourseChosen(item.entity)
-                })
-                TakenCoursesState.Item.Error -> ItemError()
-                TakenCoursesState.Item.Loading -> ItemLoading()
+    val lazyColumnListState = rememberLazyListState()
+
+//    val isNeededLoadMore by remember {
+//        derivedStateOf {
+//            val lastVisibleItem =
+//                lazyColumnListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: Int.MIN_VALUE
+//            val totalItems = lazyColumnListState.layoutInfo.totalItemsCount
+//            lastVisibleItem >= totalItems - 5
+//        }
+//    }
+//
+//    LaunchedEffect(isNeededLoadMore, currentState.isLastPage) {
+//        if (isNeededLoadMore && !currentState.isLastPage) onLoadMore.invoke()
+//    }
+    PullToRefreshBox(
+        isRefreshing = false,
+        onRefresh = {
+            onRefresh()
+        }
+    ) {
+        LazyColumn(Modifier.fillMaxSize(), state = lazyColumnListState) {
+            items(currentState.courses) { item ->
+                when (item) {
+                    is TakenCoursesState.Item.Course -> ItemCourse(item.entity, onClick = {
+                        onCourseChosen(item.entity)
+                    })
+
+                    TakenCoursesState.Item.Error -> ItemError()
+                    TakenCoursesState.Item.Loading -> ItemLoading()
+                }
             }
         }
     }

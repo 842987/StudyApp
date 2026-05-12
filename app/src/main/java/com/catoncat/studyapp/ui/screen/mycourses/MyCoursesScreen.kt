@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -21,9 +22,12 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +50,10 @@ fun MyCoursesScreen(
 ) {
 
     val state by viewModel.uiState.collectAsState();
+
+    LaunchedEffect(Unit) {
+        viewModel.getData()
+    }
 
     when (val currentState = state) {
         is MyCoursesState.Error -> MyCoursesErrorState(
@@ -109,21 +117,44 @@ fun MyCoursesContentState(
     onCourseClick: (CourseEntity) -> Unit
 ) {
     val showCreateCourseDialog = remember { mutableStateOf(false) }
+    val lazyColumnListState = rememberLazyListState()
+
+//    val isNeededLoadMore by remember {
+//        derivedStateOf {
+//            val lastVisibleItem =
+//                lazyColumnListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: Int.MIN_VALUE
+//            val totalItems = lazyColumnListState.layoutInfo.totalItemsCount
+//            lastVisibleItem >= totalItems - 5
+//        }
+//    }
+//
+//    LaunchedEffect(isNeededLoadMore, currentState.isLastPage) {
+//        if (isNeededLoadMore && !currentState.isLastPage) onLoadMore.invoke()
+//    }
+
     CreateCourseDialog(showCreateCourseDialog, onCreate = onCreate)
     Box(Modifier.fillMaxSize()) {
-        LazyColumn(
-            Modifier
-                .fillMaxSize()
-                .align(Alignment.Center)
+        PullToRefreshBox(
+            isRefreshing = false,
+            onRefresh = {
+                onRefresh()
+            }
         ) {
-            items(currentState.courses) { item ->
-                when (item) {
-                    is MyCoursesState.Item.Course -> ItemCourse(
-                        item.entity, showCreator = false,
-                        onClick = { onCourseClick(item.entity) })
+            LazyColumn(
+                Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center),
+                state = lazyColumnListState
+            ) {
+                items(currentState.courses) { item ->
+                    when (item) {
+                        is MyCoursesState.Item.Course -> ItemCourse(
+                            item.entity, showCreator = false,
+                            onClick = { onCourseClick(item.entity) })
 
-                    MyCoursesState.Item.Error -> ItemError()
-                    MyCoursesState.Item.Loading -> ItemLoading()
+                        MyCoursesState.Item.Error -> ItemError()
+                        MyCoursesState.Item.Loading -> ItemLoading()
+                    }
                 }
             }
         }

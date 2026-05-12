@@ -10,9 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.Typeface
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesScreen
+import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesViewModel
 import com.catoncat.studyapp.ui.screen.auth.AuthScreen
 import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingScreen
 import com.catoncat.studyapp.ui.screen.courseviewing.CourseViewingScreen
