@@ -18,7 +18,6 @@
     import androidx.compose.foundation.layout.offset
     import androidx.compose.foundation.layout.padding
     import androidx.compose.foundation.layout.requiredSize
-    import androidx.compose.foundation.layout.size
     import androidx.compose.foundation.rememberScrollState
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material3.Button
@@ -33,7 +32,6 @@
     import androidx.compose.material3.SmallFloatingActionButton
     import androidx.compose.material3.Text
     import androidx.compose.material3.TextButton
-    import androidx.compose.material3.TextField
     import androidx.compose.runtime.Composable
     import androidx.compose.runtime.LaunchedEffect
     import androidx.compose.runtime.MutableState
@@ -42,10 +40,8 @@
     import androidx.compose.runtime.key
     import androidx.compose.runtime.mutableFloatStateOf
     import androidx.compose.runtime.mutableIntStateOf
-    import androidx.compose.runtime.mutableStateListOf
     import androidx.compose.runtime.mutableStateOf
     import androidx.compose.runtime.remember
-    import androidx.compose.runtime.setValue
     import androidx.compose.runtime.snapshots.SnapshotStateList
     import androidx.compose.ui.Alignment
     import androidx.compose.ui.Modifier
@@ -97,6 +93,7 @@
                             Log.d("CourseCreatingScreen", exerciseEntity.name)
                         }
                     }
+//                    updateKey.intValue++
     //                backStack.remove(AppRoute.CourseCreating)
                 },
                 onNavigateToPreviousScreen = {
@@ -173,6 +170,7 @@
     //        )
             )
         }
+        val clickedLessonIndex = remember {mutableIntStateOf(-1)}
     
         val showAddDialog = remember { mutableStateOf(false) }
         val showEditDialog = remember { mutableStateOf(false) }
@@ -194,7 +192,9 @@
         )
     
         val updateLessonsKey = remember { mutableIntStateOf(0) }
-    
+
+
+
         EditLessonDialog(
             "Редактирование урока",
             clickedLesson.value,
@@ -204,14 +204,24 @@
     //            onUpdateLesson(lesson)
     //        },
             onSaveButton = null,
-            onDeleteButton = { lesson ->
+            onDeleteButton = { index, lesson ->
     //            content.course.lessons = content.course.lessons.remove(lesson)
     //            content.course.lessons = content.course.lessons.remove(lesson)
     //            lessons.value = content.course.lessons
                 lesson.deleted = true
+                val newLessons = content.course.lessons.toMutableList()
+                newLessons[index] = lesson
+                content.course.lessons = newLessons.toPersistentList()
                 updateLessonsKey.intValue++
+//                lessons.value = content.course.lessons
             },
- null
+            index = clickedLessonIndex.intValue,
+            onUpdateLesson = { index, entity ->
+                val newLessons = content.course.lessons.toMutableList()
+                newLessons[index] = entity
+                content.course.lessons = newLessons.toPersistentList()
+            },
+            edit = true
         )
         EditLessonDialog(
             "Добавление урока",
@@ -242,11 +252,19 @@
                 Log.d("CourseCreatingContentState", lesson.toString())
                 content.course.lessons = content.course.lessons.add(lesson)
                 lessons.value = content.course.lessons
+
                 Log.d("CourseCreatingContentState", content.course.lessons.size.toString())
     //            onCreateLesson(lesson)
             },
-            onDeleteButton = null,
-            onUpdateLesson = null
+            onDeleteButton = {_,_ ->},
+            onUpdateLesson = {index, lessonEntity ->
+//                val newLessons = content.course.lessons.toMutableList()
+//                newLessons[index] = entity
+//                content.course.lessons = newLessons.toPersistentList()
+                content.course.lessons = content.course.lessons.add(lessonEntity)
+            },
+            index = clickedLessonIndex.intValue,
+            edit = false
         )
         ChooseSaveOrNotSaveDialog(
             showSaveOrNotSaveDialog,
@@ -307,7 +325,7 @@
                     })
     
                 key(updateLessonsKey.intValue) {
-                    lessons.value.forEach { lesson ->
+                    lessons.value.forEachIndexed { index, lesson ->
                         if (!lesson.deleted) {
     
     //                when (it) {
@@ -335,6 +353,7 @@
                                         modifier = Modifier
                                             .clickable(onClick = {
                                                 clickedLesson.value = lesson
+                                                clickedLessonIndex.intValue = index
                                                 showEditDialog.value = true
                                             }),
                                         onError = {
@@ -346,6 +365,7 @@
                                 Button(
                                     onClick = {
                                         clickedLesson.value = lesson
+                                        clickedLessonIndex.intValue = index
                                         showEditDialog.value = true
                                     },
                                     Modifier
@@ -442,8 +462,10 @@
         lessons: MutableList<LessonEntity>,
         show: MutableState<Boolean>,
         onSaveButton: ((LessonEntity) -> Unit)?,
-        onDeleteButton: ((LessonEntity) -> Unit)?,
-        onUpdateLesson: ((LessonEntity) -> Unit)?
+        onDeleteButton: (index: (Int), (LessonEntity)) -> Unit,
+        index: Int,
+        onUpdateLesson: (index: Int, (LessonEntity)) -> Unit,
+        edit: Boolean
     ) {
     //    val newLesson = lesson.copy()
         if (show.value) {
@@ -791,21 +813,21 @@
     //                        Log.d("EditLessonDialog", lesson.exercises.size.toString())
                         }) { Text("Добавить") }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            if (onDeleteButton != null) {
+                            if (edit) {
                                 Button(
                                     onClick = {
                                         show.value = false
-                                        onDeleteButton(lesson)
+                                        onDeleteButton(index,lesson)
                                     },
                                 ) { Text("Удалить") }
                                 TextButton(
                                     onClick = {
                                         show.value = false
-//                                        onUpdateLesson(lesson)
+                                        onUpdateLesson(index, lesson)
                                     },
                                 ) { Text("Сохранить") }
                             }
-                            if (onSaveButton != null) {
+                            if (!edit && onSaveButton != null) {
                                 TextButton(
                                     modifier = Modifier.padding(end = 5.dp),
                                     onClick = {
