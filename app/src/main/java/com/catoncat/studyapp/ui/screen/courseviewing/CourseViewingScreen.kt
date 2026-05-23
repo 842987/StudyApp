@@ -1,6 +1,7 @@
 package com.catoncat.studyapp.ui.screen.courseviewing
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -10,13 +11,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,6 +33,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.Typography
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -36,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -64,6 +70,10 @@ fun CourseViewingScreen(
     backStack: SnapshotStateList<AppRoute>
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getData()
+    }
 
     val chosenLesson = remember { mutableStateOf<LessonEntity?>(null) }
 
@@ -122,7 +132,7 @@ fun CourseViewingContentState(
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
-                .requiredSize(1500.dp, 1500.dp)
+                .requiredSize(10000.dp, 10000.dp)
                 .scale(scale = scale.floatValue)
                 .offset {
                     IntOffset(
@@ -140,7 +150,7 @@ fun CourseViewingContentState(
             val error = remember { mutableStateOf(false) }
             if (error.value) {
                 Canvas(Modifier.fillMaxSize()) {
-                    drawRect(Color.DarkGray)
+                    drawRect(Color.Transparent)
                 }
             }
 
@@ -169,7 +179,7 @@ fun CourseViewingContentState(
                                 model = if (!lesson.opened) lesson.imageUrlOnLocked else if (!lesson.completed) lesson.imageUrl else lesson.imageUrlOnCompleted,
                                 contentDescription = "Lesson",
                                 modifier = Modifier
-                                    .clickable(onClick = {
+                                    .clickable(enabled = lesson.opened, onClick = {
                                         onChooseLesson(lesson)
                                     }),
                                 onError = {
@@ -189,7 +199,13 @@ fun CourseViewingContentState(
                                         lesson.x.toInt(),
                                         lesson.y.toInt()
                                     )
-                                }
+                                },
+                            enabled = lesson.opened,
+                            border = if (lesson.completed) BorderStroke(
+                                1.5.dp,
+                                Color.Green
+                            ) else null,
+//                            shape = CircleShape
                         ) { Text(lesson.name) }
                     }
                 }
@@ -219,52 +235,74 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
     if (lesson.exercises.isEmpty()) {
         Box(Modifier.fillMaxSize()) {
             Text(text = "Урок не содержит заданий", Modifier.align(Alignment.Center))
-            Button(onClick = onLessonCompleted) {
+            Button(onClick = onLessonCompleted, Modifier.align(Alignment.BottomCenter)) {
                 Text("Дальше")
             }
         }
     } else {
-        val exerciseQueue = ArrayDeque(lesson.exercises)
-        val exerciseCount = exerciseQueue.size;
+        val exerciseQueue =
+            remember { mutableStateListOf<ExerciseEntity>(*lesson.exercises.toTypedArray()) }
+//        exerciseQueue.addAll()
+        val exerciseCount = lesson.exercises.size;
 //        var currentLessonId = 0
 //        val currentExercise = remember { mutableStateOf(lesson.exercises[currentLessonId]) }
-        val currentExercise = remember { mutableStateOf(exerciseQueue[0]) }
+//        val currentExercise = remember { derivedStateOf {  exerciseQueue.last() } }
         val rightChosen = remember { mutableStateOf(false) }
         val canAnswer = remember { mutableStateOf(false) }
-        val lessonProgress = remember { derivedStateOf { exerciseQueue.size.toFloat()/exerciseCount } }
+        val lessonProgress =
+            remember { derivedStateOf { 1 - exerciseQueue.size.toFloat() / exerciseCount } }
         val rightAnswers = remember {
             derivedStateOf {
-                currentExercise.value.answers.filter { answerEntity -> answerEntity.correct }
+//                currentExercise.value.answers.filter { answerEntity -> answerEntity.correct }
+                exerciseQueue[0].answers.filter { answerEntity -> answerEntity.correct }
             }
         }
+        val answered = remember { mutableStateOf(false) }
+
         Box(Modifier.fillMaxSize()) {
 
-            LinearProgressIndicator(
-                progress = { lessonProgress.value }, Modifier.fillMaxWidth()
-            )
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)) {
+                LinearProgressIndicator(
+                    progress = { lessonProgress.value }, Modifier.fillMaxWidth()
+                )
 
-            Text(
-                text = currentExercise.value.text,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = Typography.titleLarge
-            )
+                Text(
+                    text = exerciseQueue[0].name,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = Typography.titleLarge
+                )
 
-            when (currentExercise.value.typeName) {
+                Spacer(Modifier.height(10.dp))
+
+                Text(
+//                text = currentExercise.value.text,
+                    text = exerciseQueue[0].text,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = Typography.titleLarge
+                )
+            }
+
+            when (exerciseQueue[0].typeName) {
                 ExerciseType.Input.typeName -> {
 
                     val inputText = remember { mutableStateOf("") }
                     TextField(value = inputText.value, onValueChange = { value ->
+                        inputText.value = value
                         if (!value.isEmpty()) {
-                            inputText.value = value
+                            rightChosen.value = false
                             for (answerEntity in rightAnswers.value) {
                                 if (answerEntity.text == value) {
                                     rightChosen.value = true
                                     break
                                 }
                             }
-                            rightChosen.value = false
                             canAnswer.value = true
+                        } else {
+                            canAnswer.value = false
                         }
                     }, Modifier.align(Alignment.Center))
                 }
@@ -276,12 +314,13 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                             .selectableGroup()
                             .align(Alignment.Center)
                     ) {
-                        currentExercise.value.answers.forEach { answer ->
+                        exerciseQueue[0].answers.forEach { answer ->
                             IconToggleButton(
+                                enabled = !answered.value,
                                 checked = (answer.id!!) == checkedAnswerId.longValue,
                                 onCheckedChange = { checked ->
                                     if (checked) {
-                                        checkedAnswerId.longValue = answer.id
+                                        checkedAnswerId.longValue = answer.id!!
                                         rightChosen.value = answer.correct
                                         canAnswer.value = true
                                         Log.e("Test", "${answer.correct}")
@@ -296,11 +335,28 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
             }
 
 //            val isAnswerWrong = remember { mutableStateOf(false) }
-            val answered = remember { mutableStateOf(false) }
 
             Column(Modifier.align(Alignment.BottomCenter)) {
 
-                if (answered.value) {
+                if (exerciseQueue[0].answers.isEmpty()) {
+                    Button(
+                        onClick = {
+                            exerciseQueue.removeAt(0)
+                            if (exerciseQueue.isEmpty()) {
+                                onLessonCompleted()
+                            } else {
+                                canAnswer.value = false
+                                answered.value = false
+                                rightChosen.value = false
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+//                            .align(Alignment.BottomCenter)
+                    ) {
+                        Text("Дальше")
+                    }
+                } else if (answered.value) {
                     if (rightChosen.value) {
 //                    val text =
 //                        StringBuilder("Правильно. ${if (rightAnswers.size > 1) "Другие правильные ответы: " else "Другой правильный ответ: "}")
@@ -316,14 +372,14 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                             onClick = {
 //                            currentLessonId++
 //                            currentExercise.value = lesson.exercises[currentLessonId]
-                                exerciseQueue.removeLast()
+                                exerciseQueue.removeAt(0)
                                 if (exerciseQueue.isEmpty()) {
                                     onLessonCompleted()
                                 } else {
                                     canAnswer.value = false
                                     answered.value = false
                                     rightChosen.value = false
-                                    currentExercise.value = exerciseQueue.last()
+//                                    currentExercise.value = exerciseQueue.last()
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
@@ -348,8 +404,8 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                             onClick = {
 //                            currentLessonId++
 //                            currentExercise.value = lesson.exercises[currentLessonId]
-                                exerciseQueue.addFirst(currentExercise.value)
-                                exerciseQueue.removeLast()
+                                exerciseQueue.add(exerciseQueue[0])
+                                exerciseQueue.removeAt(0)
                                 canAnswer.value = false
                                 answered.value = false
                                 rightChosen.value = false

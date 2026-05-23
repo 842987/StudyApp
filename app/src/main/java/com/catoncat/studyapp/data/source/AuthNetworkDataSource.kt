@@ -1,5 +1,6 @@
 package com.catoncat.studyapp.data.source
 
+import android.R
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import com.catoncat.studyapp.data.dto.UserDto
@@ -7,6 +8,7 @@ import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Count
 import io.ktor.client.request.get
@@ -43,11 +45,12 @@ class AuthNetworkDataSource {
 
             val userID = Network.supabase.auth.currentUserOrNull()!!.id
 
-            AuthLocalDataSource.userDto = Network.supabase.from("users").select(columns = Columns.ALL) {
-                filter {
-                    eq("user_id", userID)
-                }
-            }.decodeSingleOrNull<UserDto>()
+            AuthLocalDataSource.userDto =
+                Network.supabase.from("users").select(columns = Columns.ALL) {
+                    filter {
+                        eq("user_id", userID)
+                    }
+                }.decodeSingleOrNull<UserDto>()
 
 //            Log.e(this.javaClass.name, Network.supabase.from("users").select(columns = Columns.raw("id")) {
 //                filter {
@@ -65,4 +68,44 @@ class AuthNetworkDataSource {
             true
         }
     }
+
+    suspend fun singUp(
+        login: String,
+        passwordToSet: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            Network.supabase.auth.signUpWith(Email) {
+                email = login
+                password = passwordToSet
+            }
+            Network.supabase.auth.currentUserOrNull()?.id?.let { id ->
+                Network.supabase.from("users").insert(
+                    mapOf(
+                        Pair("user_id", id),
+                        Pair("username", "Новый пользователь"),
+                        Pair("avatar_url", "")
+                    )
+                )
+            }
+            Unit
+        }
+    }
+
+    //TODO: добавить обработку ошибок
+    suspend fun updateUsernameAndAvatarUrl(username: String, avatarUrl: String) =
+        withContext(Dispatchers.IO) {
+            AuthLocalDataSource.userDto?.let { dto->
+                val result =
+                    Network.supabase.from("users").update({
+                        set("username", username)
+                        set("avatar_url", avatarUrl)
+                    }) {
+                        filter {
+                            eq("id", dto.id!!)
+                        }
+                        select()
+                    }.decodeSingle<UserDto>()
+                AuthLocalDataSource.userDto = UserDto(dto.id, result.name, result.avatarUrl)
+            }
+        }
 }

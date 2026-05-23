@@ -4,7 +4,7 @@ import kotlinx.collections.immutable.PersistentList
 
 
 class LessonEntity (
-    val id: Long?,
+    var id: Long?,
     var name: String,
     var imageUrl: String,
     var imageUrlOnCompleted: String,

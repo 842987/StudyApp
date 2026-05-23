@@ -52,8 +52,8 @@ object Network {
 //    }
     @OptIn(SupabaseInternal::class)
     val supabase = createSupabaseClient(
-        supabaseUrl = "https://yjhpwtkydrepghwxzwlw.supabase.co",
-        supabaseKey = "sb_publishable_tiyHL9LCY3C6TzmsvWyGfA_NGVvngS6"
+        supabaseUrl = "https://drayamkugnignib.beget.app",
+        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzc5NDA4MDAwLCJleHAiOjE5MzcxNzQ0MDB9.zOt0hMIi2HyVSuoEqv95dHoTsU0xYBY-yv4X0bCDLv8"
     ) {
         install(Postgrest) {
 //            defaultSchema = "schema" // default: "public"

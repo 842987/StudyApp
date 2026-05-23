@@ -4,8 +4,8 @@ import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 
 class GetAllCoursesUseCase(private val courseRepository: CourseRepository) {
-    suspend operator fun invoke(offset: Int): Result<PagingCoursesEntity> {
-        return courseRepository.getCourses(page = offset/COUNT, size = COUNT);
+    suspend operator fun invoke(query:String, offset: Int): Result<PagingCoursesEntity> {
+        return courseRepository.getCourses(query, page = offset/COUNT, size = COUNT);
     }
 
     private companion object {

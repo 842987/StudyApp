@@ -24,5 +24,5 @@ data class LessonDto(
     @SerialName("required_lesson")
     var requiredLessons: List<RequiredLessonDto>? = null,
     @SerialName("users_completed_id")
-    val usersCompletedId: List<Long>
+    val usersCompletedId: List<Map<String, Long>>
 )

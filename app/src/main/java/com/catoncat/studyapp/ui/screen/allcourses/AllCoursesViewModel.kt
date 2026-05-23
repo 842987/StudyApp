@@ -44,16 +44,18 @@ class AllCoursesViewModel : ViewModel() {
 //    }
 
 
-    fun onIntent(intent:
+    fun onIntent(
+        intent:
 
-                 AllCoursesIntent) {
+        AllCoursesIntent
+    ) {
         when (intent) {
             is AllCoursesIntent.LoadMore -> {
                 getData(offset = actualResult.size)
             }
 
             is AllCoursesIntent.Refresh -> {
-                getData(offset = if (actualResult.isEmpty()) 0 else actualResult.size - 1)
+                getData(intent.query/*offset = if (actualResult.isEmpty()) 0 else actualResult.size - 1*/)
             }
 
             is AllCoursesIntent.TakeCourse -> {
@@ -64,7 +66,7 @@ class AllCoursesViewModel : ViewModel() {
         }
     }
 
-    fun getData(offset: Int = 0) {
+    fun getData(query: String = "", offset: Int = 0) {
         viewModelScope.launch {
 //            _uiState.emit(AllCoursesState.Loading)
 //
@@ -99,7 +101,6 @@ class AllCoursesViewModel : ViewModel() {
 //            _uiState.emit(AllCoursesState.Content(true, actualResult.toPersistentList()))
             val isFirstPage = offset == 0
             viewModelScope.launch {
-                // В начале определяем где нарисовать "крутилку"
                 _uiState.emit(
                     if (isFirstPage) {
                         AllCoursesState.Loading
@@ -114,8 +115,7 @@ class AllCoursesViewModel : ViewModel() {
                     }
                 )
 
-                // Запрашиваем данные
-                getAllCoursesUseCase.invoke(offset).fold(
+                getAllCoursesUseCase.invoke(query, offset).fold(
                     onSuccess = { data ->
                         addItemsToState(isFirstPage, data)
                     },

@@ -28,11 +28,10 @@ fun ItemCourse(
 //            .height(150.dp)
             .padding(10.dp)
     ) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(5.dp)) {
             Text(
                 text = entity.name,
                 style = Typography.headlineMedium,
-                modifier = Modifier.padding(5.dp)
             )
             if (showCreator) Text(text = entity.creator.username, style = Typography.bodyLarge)
             Text(text = entity.description)

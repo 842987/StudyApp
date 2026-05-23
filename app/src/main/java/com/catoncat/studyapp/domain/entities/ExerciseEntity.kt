@@ -4,7 +4,7 @@ import kotlinx.collections.immutable.PersistentList
 
 
 class ExerciseEntity(
-    val id: Long?,
+    var id: Long?,
     var name: String,
     var text: String,
     var typeName: String,

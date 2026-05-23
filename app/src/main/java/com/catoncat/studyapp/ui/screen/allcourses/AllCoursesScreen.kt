@@ -1,12 +1,15 @@
 package com.catoncat.studyapp.ui.screen.allcourses
 
+import android.text.Layout
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.OverscrollFactory
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,13 +21,19 @@ import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -45,6 +54,8 @@ import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import com.catoncat.studyapp.ui.theme.Typography
 import com.catoncat.studyapp.ui.util.ItemCourse
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun AllCoursesScreen(
@@ -60,14 +71,19 @@ fun AllCoursesScreen(
     when (val currentState = state) {
         is AllCoursesState.Error -> AllCoursesErrorState(
             currentState,
-            onRefresh = { viewModel.onIntent(AllCoursesIntent.Refresh) }
+            onRefresh = { viewModel.onIntent(AllCoursesIntent.Refresh("")) }
         )
 
-        is AllCoursesState.Loading -> AllCoursesLoadingState()
+        is AllCoursesState.Loading -> AllCoursesLoadingState(onRefresh = { query ->
+            viewModel.onIntent(
+                AllCoursesIntent.Refresh(query)
+            )
+        })
+
         is AllCoursesState.Content -> AllCoursesContentState(
             currentState,
             onLoadMore = { viewModel.onIntent(AllCoursesIntent.LoadMore) },
-            onRefresh = { viewModel.onIntent(AllCoursesIntent.Refresh) },
+            onRefresh = { query -> viewModel.onIntent(AllCoursesIntent.Refresh(query)) },
             onCourseChosen = { courseEntity ->
                 viewModel.onIntent(
                     AllCoursesIntent.TakeCourse(
@@ -95,24 +111,71 @@ fun AllCoursesErrorState(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AllCoursesLoadingState() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column {
-            CircularProgressIndicator(Modifier)
+fun AllCoursesLoadingState(onRefresh: (query: String) -> Unit) {
+//    Box(Modifier.fillMaxSize()) {
+//        val searchQuery = remember { mutableStateOf("") }
+//
+//        Row(
+//            Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.TopCenter)
+//        ) {
+//
+//            OutlinedTextField(
+//                value = searchQuery.value,
+//                onValueChange = { value -> searchQuery.value = value },
+//                placeholder = { Text("Поиск") })
+//            Button(onClick = {
+//                onRefresh(searchQuery.value)
+//            }) { Text("Найти") }
+//        }
+//        CircularProgressIndicator(Modifier.align(Alignment.Center))
+//    }
+    val searchQuery = remember { mutableStateOf("") }
+    PullToRefreshBox(
+        isRefreshing = false,
+        onRefresh = {
+            onRefresh("")
+        }
+    ) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+        ) {
+            SearchBarDefaults.InputField(
+                modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top=5.dp),
+                query = searchQuery.value,
+                onQueryChange = { value ->
+                    searchQuery.value = value
+                },
+                onSearch = {
+                    onRefresh(searchQuery.value)
+                },
+                expanded = false,
+                onExpandedChange = {
+                },
+                placeholder = { Text("Поиск") }
+            )
+            Box(Modifier.fillMaxSize()) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            }
         }
     }
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllCoursesContentState(
     currentState: AllCoursesState.Content,
     onLoadMore: () -> Unit,
-    onRefresh: () -> Unit,
+    onRefresh: (query: String) -> Unit,
     onCourseChosen: (course: CourseEntity) -> Unit
 ) {
-    val lazyColumnListState = rememberLazyListState()
+    val searchQuery = remember { mutableStateOf("") }
 
 //    val isNeededLoadMore by remember {
 //        derivedStateOf {
@@ -129,33 +192,73 @@ fun AllCoursesContentState(
 
 //    val isRefreshing by remember { mutableStateOf(false) }
 
+//    val searchExpanded = remember { mutableStateOf(false) }
+
     PullToRefreshBox(
         isRefreshing = false,
         onRefresh = {
-            onRefresh()
+            onRefresh("")
         }
     ) {
-
-
-        LazyColumn(
+        Column(
             Modifier
-                .fillMaxSize(),
-            state = lazyColumnListState
+                .fillMaxSize()
+                .align(Alignment.Center)
         ) {
-            items(currentState.courses) { item ->
-                when (item) {
-                    is AllCoursesState.Item.Course -> ItemCourse(
-                        item.entity,
-                        onClick = { onCourseChosen(item.entity) })
 
-                    AllCoursesState.Item.Error -> ItemError()
-                    AllCoursesState.Item.Loading -> ItemLoading()
-                }
+
+            SearchBarDefaults.InputField(
+                modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top=5.dp),
+                query = searchQuery.value,
+                onQueryChange = { value ->
+                    searchQuery.value = value
+                },
+                onSearch = {
+                    onRefresh(searchQuery.value)
+                },
+                expanded = false,
+                onExpandedChange = {
+                },
+                placeholder = { Text("Поиск") }
+            )
+//                    value = searchQuery.value,
+//                    onValueChange = { value -> searchQuery.value = value },
+//                    placeholder = { Text("Поиск") },
+//                    inputField = { },
+//                    modifier = Modifier.weight(0.7f).padding(horizontal = 3.dp))
+//                Button(onClick = {
+//                    onRefresh(searchQuery.value)
+//                }, Modifier.weight(0.3f).padding(horizontal = 3.dp)) { Text("Найти") }
+
+            CourseList(courses = currentState.courses, onCourseChosen)
+        }
+    }
+
+
+}
+
+@Composable
+fun CourseList(
+    courses: PersistentList<AllCoursesState.Item>,
+    onCourseChosen: (course: CourseEntity) -> Unit
+) {
+    val lazyColumnListState = rememberLazyListState()
+    LazyColumn(
+        Modifier
+            .fillMaxWidth(),
+        state = lazyColumnListState
+    ) {
+        items(courses) { item ->
+            when (item) {
+                is AllCoursesState.Item.Course -> ItemCourse(
+                    item.entity,
+                    onClick = { onCourseChosen(item.entity) })
+
+                AllCoursesState.Item.Error -> ItemError()
+                AllCoursesState.Item.Loading -> ItemLoading()
             }
         }
- }
-
-
+    }
 }
 
 //@Composable
@@ -201,7 +304,7 @@ fun ItemError() {
             .padding(10.dp)
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Couldn't load")
+            Text("Не загружается")
         }
     }
 }

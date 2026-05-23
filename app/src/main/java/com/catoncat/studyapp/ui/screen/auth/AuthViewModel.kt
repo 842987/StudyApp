@@ -1,5 +1,6 @@
 package com.catoncat.studyapp.ui.screen.auth
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.AuthRepository
@@ -7,6 +8,7 @@ import com.catoncat.studyapp.data.source.AuthLocalDataSource
 import com.catoncat.studyapp.data.source.AuthNetworkDataSource
 import com.catoncat.studyapp.domain.auth.CheckAndSaveAuthUseCase
 import com.catoncat.studyapp.domain.auth.CheckAuthFormatUseCase
+import com.catoncat.studyapp.domain.auth.SignUpUseCase
 import com.catoncat.studyapp.ui.navigation.AppRoute
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,10 +28,19 @@ class AuthViewModel : ViewModel() {
             )
         )
     }
+    private val signUpUseCase by lazy {
+        SignUpUseCase(
+            AuthRepository(
+                authNetworkDataSource = AuthNetworkDataSource(),
+                authLocalDataSource = AuthLocalDataSource
+            )
+        )
+    }
     private val _uiState = MutableStateFlow<AuthState>(
         AuthState.Data(
             isEnabledSend = false,
-            error = null
+            error = null,
+            message = null
         )
     )
     val uiState: StateFlow<AuthState> = _uiState.asStateFlow()
@@ -40,8 +51,11 @@ class AuthViewModel : ViewModel() {
 
     fun onIntent(intent: AuthIntent) {
         when (intent) {
-            is AuthIntent.Send -> {
+            is AuthIntent.SignIn -> {
                 viewModelScope.launch {
+                    val state = _uiState.value
+                    _uiState.emit(AuthState.Loading)
+
                     checkAndSaveAuthCodeUseCase.invoke(intent.login, intent.password).fold(
                         onSuccess = {
                             _actionFlow.emit(
@@ -49,6 +63,33 @@ class AuthViewModel : ViewModel() {
                             )
                         },
                         onFailure = { error ->
+                            _uiState.emit(state)
+                            updateStateIfData { oldState ->
+                                oldState.copy(
+                                    error = error.message
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+
+            is AuthIntent.SignUp -> {
+                viewModelScope.launch {
+                    val state = _uiState.value
+                    _uiState.emit(AuthState.Loading)
+
+                    signUpUseCase.invoke(intent.login, intent.password).fold(
+                        onSuccess = {
+                            _uiState.emit(state)
+                            updateStateIfData { oldState ->
+                                oldState.copy(
+                                    message = "Аккаунт зарегистрирован. Теперь войдите"
+                                )
+                            }
+                        },
+                        onFailure = { error ->
+                            _uiState.emit(state)
                             updateStateIfData { oldState ->
                                 oldState.copy(
                                     error = error.message

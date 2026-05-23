@@ -38,6 +38,7 @@ class CourseCreatingViewModel : ViewModel() {
     fun onIntent(intent: CourseCreatingIntent) {
         when (intent) {
             is CourseCreatingIntent.UpdateCourse -> viewModelScope.launch {
+                _uiState.emit(CourseCreatingState.Loading)
                 updateCourseUseCase.invoke(
                     intent.course
                     /*                    CourseEntity(
@@ -73,6 +74,7 @@ class CourseCreatingViewModel : ViewModel() {
                                         )*/
 
                 )
+                getData()
                 intent.course.lessons.forEach { lessonEntity ->
                     lessonEntity.exercises.forEach { exercise ->
                         Log.d("CourseCreatingViewModel", exercise.name)

@@ -6,10 +6,7 @@ import com.catoncat.studyapp.data.CourseRepository
 import com.catoncat.studyapp.data.source.CourseInfoDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
-import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
 import com.catoncat.studyapp.domain.courseviewing.CompleteLessonUseCase
-import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingIntent
-import com.catoncat.studyapp.ui.screen.coursecreating.CourseCreatingState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +23,7 @@ class CourseViewingViewModel: ViewModel() {
             CourseInfoDataSource()
         )
     )
-    private val completeLessonUserCase = CompleteLessonUseCase(
+    private val completeLessonUseCase = CompleteLessonUseCase(
         courseRepository = CourseRepository(
             CourseInfoDataSource()
         )
@@ -37,7 +34,7 @@ class CourseViewingViewModel: ViewModel() {
             CourseViewingIntent.Refresh -> getData()
             is CourseViewingIntent.CompleteLesson -> {
                 viewModelScope.launch {
-                    completeLessonUserCase.invoke(intent.lessonId)
+                    completeLessonUseCase.invoke(intent.lessonId)
                 }
             }
         }

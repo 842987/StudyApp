@@ -21,4 +21,15 @@ class AuthRepository(
                 authLocalDataSource.clearToken()
             }
     }
+
+    suspend fun singUp(
+        login: String,
+        password: String,
+    ): Result<Unit> {
+        return authNetworkDataSource.singUp(login, password)
+    }
+
+    suspend fun changeProfileSettings(avatarUrl: String, username: String) {
+        authNetworkDataSource.updateUsernameAndAvatarUrl(username = username, avatarUrl = avatarUrl)
+    }
 }

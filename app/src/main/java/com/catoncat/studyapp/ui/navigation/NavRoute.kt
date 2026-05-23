@@ -1,5 +1,9 @@
 package com.catoncat.studyapp.ui.navigation
 
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -7,12 +11,18 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Typeface
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import coil3.compose.AsyncImage
+import com.catoncat.studyapp.data.source.AuthLocalDataSource
 import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesScreen
 import com.catoncat.studyapp.ui.screen.allcourses.AllCoursesViewModel
 import com.catoncat.studyapp.ui.screen.auth.AuthScreen
@@ -28,7 +38,8 @@ fun NavRoute(
     modifier: Modifier,
 //    backStack: NavBackStack<NavKey> = rememberNavBackStack  (CoursesList)\
 //    backStack: SnapshotStateList<Any> = remember { mutableStateListOf(CoursesList) }
-    backStack: SnapshotStateList<AppRoute>
+    backStack: SnapshotStateList<AppRoute>,
+    onAvatarChanged: (url: String) -> Unit
 ) {
 
     NavDisplay(
@@ -46,7 +57,7 @@ fun NavRoute(
                 TakenCoursesScreen(backStack = backStack)
             }
             entry<AppRoute.Settings> {
-                SettingsScreen(backStack = backStack)
+                SettingsScreen(backStack = backStack, onAvatarChanged = onAvatarChanged)
             }
             entry<AppRoute.CourseCreating> {
                 CourseCreatingScreen(backStack = backStack)
@@ -62,7 +73,7 @@ fun NavRoute(
 }
 
 @Composable
-fun BottomNavBar(backStack: SnapshotStateList<AppRoute>) {
+fun BottomNavBar(backStack: SnapshotStateList<AppRoute>, avatarUrl: MutableState<String>) {
 
     val currentRoute = backStack.last();
 
@@ -71,7 +82,7 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>) {
         ShortNavigationBar {
             ShortNavigationBarItem(
                 currentRoute == AppRoute.AllCourses,
-                icon = { Text("Все", style = Typography.labelSmall) }, onClick = {
+                icon = { Text("Все") }, onClick = {
                     backStack.add(AppRoute.AllCourses)
                 }, label = null
             )
@@ -83,13 +94,18 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>) {
             )
             ShortNavigationBarItem(
                 currentRoute == AppRoute.TakenCourses,
-                icon = { Text("Изучаемые", style = Typography.labelSmall) }, onClick = {
+                icon = { Text("Изучаемые",Modifier.width(intrinsicSize = IntrinsicSize.Max)) }, onClick = {
                     backStack.add(AppRoute.TakenCourses)
                 }, label = null
             )
             ShortNavigationBarItem(
                 currentRoute == AppRoute.Settings,
-                icon = { Text("Настройки") }, onClick = {
+                icon = { AsyncImage(
+                    model = avatarUrl.value/*AuthLocalDataSource.userDto?.avatarUrl?:""*/,
+                    contentDescription = "Avatar",
+                    error = painterResource(com.catoncat.studyapp.R.drawable.baseline_account_circle_24),
+                    modifier = Modifier.clip(CircleShape).requiredSize(35.dp)
+                ) }, onClick = {
                     backStack.add(AppRoute.Settings)
                 }, label = null
             )
