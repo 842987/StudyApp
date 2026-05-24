@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -198,19 +199,17 @@ fun CreateCourseDialog(
                     Text("Создание курса")
 
                     val name = remember { mutableStateOf("") }
-                    Row(Modifier.fillMaxWidth()) {
-                        Text("Название: ")
-                        TextField(
+//                    Row(Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
                             value = name.value,
-                            onValueChange = { value -> name.value = value })
-                    }
+                            onValueChange = { value -> name.value = value }, label = {Text("Название")})
+//                    }
                     val description = remember { mutableStateOf("") }
-                    Row(Modifier.fillMaxWidth()) {
-                        Text("Описание: ")
-                        TextField(
+//                    Row(Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
                             value = description.value,
-                            onValueChange = { value -> description.value = value })
-                    }
+                            onValueChange = { value -> description.value = value }, label ={Text("Описание")} )
+//                    }
 
 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {

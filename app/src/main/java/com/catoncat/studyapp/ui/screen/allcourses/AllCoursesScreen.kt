@@ -157,7 +157,7 @@ fun AllCoursesLoadingState(onRefresh: (query: String) -> Unit) {
                 expanded = false,
                 onExpandedChange = {
                 },
-                placeholder = { Text("Поиск") }
+                placeholder = { Text("Поиск по названию") }
             )
             Box(Modifier.fillMaxSize()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -219,7 +219,7 @@ fun AllCoursesContentState(
                 expanded = false,
                 onExpandedChange = {
                 },
-                placeholder = { Text("Поиск") }
+                placeholder = { Text("Поиск по названию") }
             )
 //                    value = searchQuery.value,
 //                    onValueChange = { value -> searchQuery.value = value },

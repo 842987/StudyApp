@@ -22,7 +22,7 @@ data class LessonDto(
     @SerialName("exercise")
     val exercises: List<ExerciseDto>?,
     @SerialName("required_lesson")
-    var requiredLessons: List<RequiredLessonDto>? = null,
+    var requiredLessons: List<Long> = listOf(),
     @SerialName("users_completed_id")
     val usersCompletedId: List<Map<String, Long>>
 )

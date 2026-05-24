@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -50,6 +53,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -163,8 +168,8 @@ fun CourseCreatingContentState(
                 "",
                 "",
                 "",
-                10000.0f,
-                10000.0f,
+                2500.dp.value,
+                2500.dp.value,
                 persistentListOf(),
                 persistentListOf()
             )
@@ -251,8 +256,8 @@ fun CourseCreatingContentState(
             "",
             "",
             "",
-            10000.0f,
-            10000.0f,
+            2500.dp.value,
+            2500.dp.value,
             persistentListOf(),
             persistentListOf()
         ),
@@ -289,7 +294,7 @@ fun CourseCreatingContentState(
 
         Box(
             Modifier
-                .requiredSize(10000.dp, 10000.dp)
+                .requiredSize(2500.dp, 2500.dp)
                 //                .background(Color.Cyan)
                 //                .border(5.dp,Color.Green)
                 .scale(scale = scale.floatValue)
@@ -332,6 +337,7 @@ fun CourseCreatingContentState(
                 model = content.course.backgroundUrl,
                 contentDescription = "Course background",
                 modifier = Modifier.fillMaxSize(),
+//                contentScale = ContentScale.Fit,
                 onError = {
                     error.value = true
                 })
@@ -501,24 +507,28 @@ fun EditLessonDialog(
         //            remember { mutableStateListOf<LessonEntity>() }
         val exercises = remember { mutableStateOf(editingLesson.exercises) }
         Dialog(
-            onDismissRequest = { show.value = false }, DialogProperties(
+            onDismissRequest = { show.value = false },
+            DialogProperties(
                 dismissOnBackPress = true,
                 dismissOnClickOutside = false,
                 usePlatformDefaultWidth = true,
-            )
+                decorFitsSystemWindows = false
+            ),
         ) {
 
             Card(
                 Modifier
                     .fillMaxWidth()
                     .height(IntrinsicSize.Max)
+                    .imePadding()
             ) {
                 Column(
                     Modifier
                         .fillMaxSize()
                         .padding(10.dp)
                         //                        .height(500.dp)
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState()),
+//                    verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     Text(
                         text = title,
@@ -526,35 +536,36 @@ fun EditLessonDialog(
                         modifier = Modifier.padding(bottom = 5.dp)
                     )
 
-                    Text("Название")
                     OutlinedTextField(value = name.value, onValueChange = { value ->
                         name.value = value
                         editingLesson.name = name.value
                         //                        lesson.name = value
-                    })
+                    }, label = { Text("Название") })
 
-                    Text("Url на изображение, когда урок открыт для прохождения")
                     val imageUrl = remember { mutableStateOf(editingLesson.imageUrl) }
-                    OutlinedTextField(value = imageUrl.value, onValueChange = { value ->
-                        imageUrl.value = value
-                        editingLesson.imageUrl = imageUrl.value
-                    })
+                    OutlinedTextField(
+                        value = imageUrl.value,
+                        onValueChange = { value ->
+                            imageUrl.value = value
+                            editingLesson.imageUrl = imageUrl.value
+                        },
+                        label = { Text("Url на изображение, когда урок открыт для прохождения") },
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
 
-                    Text("Url на изображение, когда урок закрыт")
                     val imageUrlOnLocked =
                         remember { mutableStateOf(editingLesson.imageUrlOnLocked) }
                     OutlinedTextField(value = imageUrlOnLocked.value, onValueChange = { value ->
                         imageUrlOnLocked.value = value
                         editingLesson.imageUrlOnLocked = imageUrlOnLocked.value
-                    })
+                    }, label = { Text("Url на изображение, когда урок закрыт") })
 
-                    Text("Url на изобажение, когда урок пройден")
                     val imageUrlOnCompleted =
                         remember { mutableStateOf(editingLesson.imageUrlOnCompleted) }
                     OutlinedTextField(value = imageUrlOnCompleted.value, onValueChange = { value ->
                         imageUrlOnCompleted.value = value
                         editingLesson.imageUrlOnCompleted = imageUrlOnCompleted.value
-                    })
+                    }, label = { Text("Url на изобажение, когда урок пройден") })
 
                     Text("Уроки, которые нужно пройти, для разблокировки этого")
 
@@ -579,287 +590,303 @@ fun EditLessonDialog(
 
                     //                    LazyColumn() {
                     if (showListOfLessons.value) {
-                        lessons.forEach { requiredLesson ->
-                            val checked = remember {
-                                mutableStateOf(
-                                    if (requiredLesson.id == null) false else editingLesson.requiredLessons.contains(
-                                        requiredLesson.id
+                        OutlinedCard {
+
+
+                            lessons.forEach { requiredLesson ->
+//                                if(requiredLesson.)
+                                val checked = remember {
+                                    mutableStateOf(
+                                        if (requiredLesson.id == null) false else editingLesson.requiredLessons.contains(
+                                            requiredLesson.id
+                                        )
                                     )
-                                )
-                            }
-                            //                            item {
-                            Row(Modifier.fillMaxWidth()) {
-                                Checkbox(
-                                    enabled = requiredLesson.id != null,
-                                    checked = /*requiredLessons.value.contains(requiredLesson)*/checked.value,
-                                    onCheckedChange = { value ->
-                                        checked.value = value
-                                        if (value) {
-                                            editingLesson.requiredLessons =
-                                                editingLesson.requiredLessons.add(requiredLesson.id!!)
+                                }
+                                //                            item {
+                                Row(Modifier
+                                    .fillMaxWidth()
+                                    .padding(5.dp)) {
+                                    Text(text = "${requiredLesson.name} (ID: ${requiredLesson.id ?: "ещё нет"})")
+                                    Checkbox(
+                                        enabled = requiredLesson.id != null,
+                                        checked = /*requiredLessons.value.contains(requiredLesson)*/checked.value,
+                                        onCheckedChange = { value ->
+//                                            if (!value && checked.value) {
+//                                                requiredLesson.
+//                                            }
+                                            checked.value = value
+                                            if (value) {
+                                                editingLesson.requiredLessons =
+                                                    editingLesson.requiredLessons.add(requiredLesson.id!!)
 
-                                            //                                        requiredLessons.value =
-                                            //                                            requiredLessons.value.add(requiredLesson)
-                                        } else {
-                                            editingLesson.requiredLessons =
-                                                editingLesson.requiredLessons.remove(requiredLesson.id!!)
-                                            //                                        requiredLessons.value =
-                                            //                                            requiredLessons.value.remove(requiredLesson)
-                                        }
-                                    })
-                                Text(text = "${requiredLesson.name} ID: ${requiredLesson.id ?: "ещё нет"}")
-                            }
+                                                //                                        requiredLessons.value =
+                                                //                                            requiredLessons.value.add(requiredLesson)
+                                            } else {
+                                                editingLesson.requiredLessons =
+                                                    editingLesson.requiredLessons.remove(
+                                                        requiredLesson.id!!
+                                                    )
+                                                //                                        requiredLessons.value =
+                                                //                                            requiredLessons.value.remove(requiredLesson)
+                                            }
+                                        })
+                                }
 
-                            //                            }
+                                //                            }
+                            }
                         }
                     }
                     //                    }
 
-                    if (edit) {
+//                    if (edit) {
 
-                        Text("Задания")
-                        //                    LazyColumn(
-                        //                        Modifier
-                        //                            .fillMaxWidth()
-                        //
-                        //                            .padding(5.dp)
-                        //                    ) {
+                    Text("Задания")
+                    //                    LazyColumn(
+                    //                        Modifier
+                    //                            .fillMaxWidth()
+                    //
+                    //                            .padding(5.dp)
+                    //                    ) {
 
 
-                        exercises.value.forEach { exercise ->
-                            val showExercise = remember { mutableStateOf(!exercise.deleted) }
-                            if (showExercise.value) {
-                                //                            item {
-                                OutlinedCard(
-                                    //                            onClick = {
-                                    //                                show.value = !show.value
-                                    //                            },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 5.dp),
-                                ) {
-                                    Box(Modifier.fillMaxSize()) {
-                                        Column(
+                    exercises.value.forEach { exercise ->
+                        val showExercise = remember { mutableStateOf(!exercise.deleted) }
+                        if (showExercise.value) {
+                            //                            item {
+                            OutlinedCard(
+                                //                            onClick = {
+                                //                                show.value = !show.value
+                                //                            },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 5.dp),
+                            ) {
+                                Box(Modifier.fillMaxSize()) {
+                                    Column(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(5.dp)
+                                    ) {
+
+                                        Row {
+                                            val exerciseName =
+                                                remember { mutableStateOf(exercise.name) }
+
+
+                                            OutlinedTextField(
+                                                value = exerciseName.value,
+                                                onValueChange = { value ->
+                                                    exerciseName.value = value
+                                                    exercise.name = value
+                                                }, label = { Text("Название") }
+                                                //                                                    textStyle = Typography.titleLarge
+                                            )
+                                        }
+
+                                        Row(
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(5.dp)
                                         ) {
 
-                                            Row {
-                                                val exerciseName =
-                                                    remember { mutableStateOf(exercise.name) }
+                                            Text("Тип: ")
 
-                                                Text("Название: ")
-                                                OutlinedTextField(
-                                                    value = exerciseName.value,
-                                                    onValueChange = { value ->
-                                                        exerciseName.value = value
-                                                        exercise.name = value
-                                                    }
-                                                    //                                                    textStyle = Typography.titleLarge
-                                                )
-                                            }
+                                            val type =
+                                                remember { mutableStateOf(exercise.typeName) }
 
-                                            Row(
-                                                Modifier
-                                                    .fillMaxWidth()
-                                            ) {
-                                                Text("Тип: ")
-                                                val type =
-                                                    remember { mutableStateOf(exercise.typeName) }
-
-                                                val expanded =
-                                                    remember { mutableStateOf(false) }
-
-                                                Text(
-                                                    modifier = Modifier
-                                                        .clickable(onClick = {
-                                                            expanded.value = true
-                                                        })
-                                                        .border(
-                                                            width = 1.dp,
-                                                            color = Color.Gray
-                                                        ),
-                                                    text = type.value
-                                                )
-                                                //                                        OutlinedTextField(value = type.value, onValueChange = {}, Modifier.clickable(onClick = {expanded.value=!expanded.value}))
-
-                                                DropdownMenu(
-                                                    //                                            expanded = expanded.value,
-                                                    //                                            onExpandedChange = { value->
-                                                    //                                                expanded.value =
-                                                    //                                                    value
-                                                    //                                            }) {
-                                                    expanded = expanded.value,
-                                                    onDismissRequest = {
-                                                        expanded.value = false
-                                                    }
-                                                ) {
-                                                    ExerciseType.entries.forEach { exerciseType ->
-                                                        DropdownMenuItem(
-                                                            text = { Text(exerciseType.name) },
-                                                            onClick = {
-                                                                type.value = exerciseType.name
-                                                                exercise.typeName =
-                                                                    exerciseType.name
-                                                                expanded.value = false
-                                                            })
-                                                    }
-                                                }
-                                            }
-                                            val expandExercise =
+                                            val expanded =
                                                 remember { mutableStateOf(false) }
 
-                                            if (expandExercise.value) {
-
-                                                Text("Текст: ")
-                                                val exerciseText =
-                                                    remember { mutableStateOf(exercise.text) }
-                                                OutlinedTextField(
-                                                    value = exerciseText.value,
-                                                    onValueChange = { value ->
-                                                        exerciseText.value = value
-                                                        exercise.text = exerciseText.value
+                                            Text(
+                                                modifier = Modifier
+                                                    .clickable(onClick = {
+                                                        expanded.value = true
                                                     })
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = Color.Gray
+                                                    ),
+                                                text = type.value
+                                            )
+                                            //                                        OutlinedTextField(value = type.value, onValueChange = {}, Modifier.clickable(onClick = {expanded.value=!expanded.value}))
 
-                                                Text("Варианты ответа")
-
-                                                val answers =
-                                                    remember { mutableStateOf(exercise.answers) }
-
-                                                //                                        LazyColumn() {
-                                                answers.value.forEach { answer ->
-                                                    val showAnswer =
-                                                        remember { mutableStateOf(!answer.deleted) }
-                                                    if (showAnswer.value) {
-                                                        OutlinedCard(Modifier.padding(5.dp)) {
-                                                            //                                                item {
-                                                            Column {
-                                                                Row {
-                                                                    Text("Текст ответа: ")
-                                                                    val answerText =
-                                                                        remember {
-                                                                            mutableStateOf(
-                                                                                answer.text
-                                                                            )
-                                                                        }
-                                                                    OutlinedTextField(
-                                                                        value = answerText.value,
-                                                                        onValueChange = { value ->
-                                                                            answerText.value =
-                                                                                value
-                                                                            answer.text =
-                                                                                answerText.value
-                                                                        })
-                                                                }
-                                                                Row {
-                                                                    Text("Правильный? ")
-                                                                    val checked =
-                                                                        remember {
-                                                                            mutableStateOf(
-                                                                                answer.correct
-                                                                            )
-                                                                        }
-                                                                    Checkbox(
-                                                                        checked = checked.value,
-                                                                        onCheckedChange = {
-                                                                            checked.value =
-                                                                                !checked.value
-                                                                            answer.correct =
-                                                                                checked.value
-                                                                        })
-                                                                }
-                                                                Button(
-                                                                    onClick = {
-                                                                        //                                                        answers.value = answers.value.remove(answer)
-                                                                        //                                                                exercise.answers =
-                                                                        //                                                                    exercise.answers.remove(answer)
-                                                                        //                                                                answers.value = exercise.answers
-                                                                        answer.deleted = true
-                                                                        showAnswer.value = false
-                                                                        //                                                        exercise.answers = answers.value
-                                                                    },
-                                                                    Modifier.fillMaxWidth()
-                                                                ) { Text("Удалить") }
-                                                            }
-                                                        }
-                                                    }
+                                            DropdownMenu(
+                                                //                                            expanded = expanded.value,
+                                                //                                            onExpandedChange = { value->
+                                                //                                                expanded.value =
+                                                //                                                    value
+                                                //                                            }) {
+                                                expanded = expanded.value,
+                                                onDismissRequest = {
+                                                    expanded.value = false
                                                 }
-
-                                                Button(onClick = {
-                                                    //                                            exercise.answers = exercise.answers.add(
-                                                    //                                                CourseCreatingState.Answer(0, "", false)
-                                                    //                                            )
-                                                    exercise.answers =
-                                                        exercise.answers.add(
-                                                            AnswerEntity(
-                                                                null,
-                                                                "",
-                                                                false
-                                                            )
-                                                        )
-                                                    answers.value = exercise.answers
-                                                }) { Text("Добавить") }
-                                            }
-                                            //                                            }
-                                            //                                        }
-                                            Row(Modifier.fillMaxWidth()) {
-                                                Button(
-                                                    onClick = {
-                                                        //                                                lesson.exercises = lesson.exercises.remove(exercise)
-                                                        //                                                exercises.value = lesson.exercises
-                                                        exercise.deleted = true
-                                                        showExercise.value = false
-                                                        //                                                exercises.remove(exercise)
-                                                    },
-                                                    Modifier.weight(0.7f)
-                                                ) {
-                                                    Text("Удалить")
-                                                }
-                                                Button(
-                                                    onClick = {
-                                                        expandExercise.value =
-                                                            !expandExercise.value
-                                                    },
-                                                    Modifier.weight(0.3f)
-                                                ) {
-                                                    Text(
-                                                        if (expandExercise.value) {
-                                                            "^"
-                                                        } else {
-                                                            "v"
-                                                        }
-                                                    )
+                                            ) {
+                                                ExerciseType.entries.forEach { exerciseType ->
+                                                    DropdownMenuItem(
+                                                        text = { Text(exerciseType.name) },
+                                                        onClick = {
+                                                            type.value = exerciseType.name
+                                                            exercise.typeName =
+                                                                exerciseType.name
+                                                            expanded.value = false
+                                                        })
                                                 }
                                             }
                                         }
+                                        val expandExercise =
+                                            remember { mutableStateOf(false) }
 
+                                        if (expandExercise.value) {
+
+                                            val exerciseText =
+                                                remember { mutableStateOf(exercise.text) }
+                                            OutlinedTextField(
+                                                value = exerciseText.value,
+                                                onValueChange = { value ->
+                                                    exerciseText.value = value
+                                                    exercise.text = exerciseText.value
+                                                }, label = { Text("Текст") })
+
+                                            Text("Варианты ответа")
+
+                                            val answers =
+                                                remember { mutableStateOf(exercise.answers) }
+
+                                            //                                        LazyColumn() {
+//                                                Card {
+
+
+                                            answers.value.forEach { answer ->
+                                                val showAnswer =
+                                                    remember { mutableStateOf(!answer.deleted) }
+                                                if (showAnswer.value) {
+                                                    OutlinedCard(Modifier.padding(bottom = 5.dp)) {
+                                                        //                                                item {
+                                                        Column(Modifier.padding(5.dp)) {
+                                                            Row {
+                                                                val answerText =
+                                                                    remember {
+                                                                        mutableStateOf(
+                                                                            answer.text
+                                                                        )
+                                                                    }
+                                                                OutlinedTextField(
+                                                                    value = answerText.value,
+                                                                    onValueChange = { value ->
+                                                                        answerText.value =
+                                                                            value
+                                                                        answer.text =
+                                                                            answerText.value
+                                                                    },
+                                                                    label = { Text("Текст ответа") })
+                                                            }
+                                                            Row {
+                                                                Text("Правильный? ")
+                                                                val checked =
+                                                                    remember {
+                                                                        mutableStateOf(
+                                                                            answer.correct
+                                                                        )
+                                                                    }
+                                                                Checkbox(
+                                                                    checked = checked.value,
+                                                                    onCheckedChange = {
+                                                                        checked.value =
+                                                                            !checked.value
+                                                                        answer.correct =
+                                                                            checked.value
+                                                                    })
+                                                            }
+                                                            Button(
+                                                                onClick = {
+                                                                    //                                                        answers.value = answers.value.remove(answer)
+                                                                    //                                                                exercise.answers =
+                                                                    //                                                                    exercise.answers.remove(answer)
+                                                                    //                                                                answers.value = exercise.answers
+                                                                    answer.deleted = true
+                                                                    showAnswer.value = false
+                                                                    //                                                        exercise.answers = answers.value
+                                                                },
+                                                                Modifier.fillMaxWidth()
+                                                            ) { Text("Удалить") }
+                                                        }
+                                                    }
+                                                }
+                                            }
+//                                                }
+                                            Button(onClick = {
+                                                //                                            exercise.answers = exercise.answers.add(
+                                                //                                                CourseCreatingState.Answer(0, "", false)
+                                                //                                            )
+                                                exercise.answers =
+                                                    exercise.answers.add(
+                                                        AnswerEntity(
+                                                            null,
+                                                            "",
+                                                            false
+                                                        )
+                                                    )
+                                                answers.value = exercise.answers
+                                            }) { Text("Добавить") }
+                                        }
+                                        //                                            }
+                                        //                                        }
+                                        Row(Modifier.fillMaxWidth()) {
+                                            Button(
+                                                onClick = {
+                                                    //                                                lesson.exercises = lesson.exercises.remove(exercise)
+                                                    //                                                exercises.value = lesson.exercises
+                                                    exercise.deleted = true
+                                                    showExercise.value = false
+                                                    //                                                exercises.remove(exercise)
+                                                },
+                                                Modifier.weight(0.7f)
+                                            ) {
+                                                Text("Удалить")
+                                            }
+                                            Button(
+                                                onClick = {
+                                                    expandExercise.value =
+                                                        !expandExercise.value
+                                                },
+                                                Modifier.weight(0.3f)
+                                            ) {
+                                                Text(
+                                                    if (expandExercise.value) {
+                                                        "^"
+                                                    } else {
+                                                        "v"
+                                                    }
+                                                )
+                                            }
+                                        }
                                     }
 
-
                                 }
-                                //                            }
-                                //                        }
+
+
                             }
+                            //                            }
+                            //                        }
                         }
-                        Button(onClick = {
-                            //                        exercises.value = exercises.value.add(
-                            //                            CourseCreatingState.Exercise(
-                            //                                0, lesson.id, "Без названия", "",
-                            //                                ExerciseType.Choose.name, persistentListOf()
-                            //                            )
-                            //                        )
-                            //                        lesson.exercises = exercises.value
-                            editingLesson.exercises = editingLesson.exercises.add(
-                                ExerciseEntity(
-                                    null, "Без названия", "",
-                                    ExerciseType.Choose.name, persistentListOf<AnswerEntity>()
-                                )
-                            )
-                            exercises.value = editingLesson.exercises
-                            //                        Log.d("EditLessonDialog", lesson.exercises.size.toString())
-                        }) { Text("Добавить") }
                     }
+                    Button(onClick = {
+                        //                        exercises.value = exercises.value.add(
+                        //                            CourseCreatingState.Exercise(
+                        //                                0, lesson.id, "Без названия", "",
+                        //                                ExerciseType.Choose.name, persistentListOf()
+                        //                            )
+                        //                        )
+                        //                        lesson.exercises = exercises.value
+                        editingLesson.exercises = editingLesson.exercises.add(
+                            ExerciseEntity(
+                                null, "Без названия", "",
+                                ExerciseType.Choose.name, persistentListOf<AnswerEntity>()
+                            )
+                        )
+                        exercises.value = editingLesson.exercises
+                        //                        Log.d("EditLessonDialog", lesson.exercises.size.toString())
+                    }) { Text("Добавить") }
+//                    }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         if (edit) {
                             Button(
@@ -940,7 +967,7 @@ fun ChooseSaveOrNotSaveDialog(
                                 show.value = false
                                 onNotSave()
                             },
-                        ) { Text("Удалить изменения") }
+                        ) { Text("Выйти") }
                         TextButton(
                             modifier = Modifier.padding(end = 5.dp),
                             onClick = {
@@ -986,29 +1013,30 @@ fun EditCourseDialog(
                         //                        .height(500.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Text("Редактирование курса")
+                    Text("Редактирование курса", style = Typography.headlineMedium)
 
                     val name = remember { mutableStateOf(course.name) }
-                    Column(Modifier.fillMaxWidth()) {
-                        Text("Название: ")
-                        OutlinedTextField(
-                            value = name.value,
-                            onValueChange = { value -> name.value = value })
-                    }
+//                    Column(Modifier.fillMaxWidth()) {
+
+                    OutlinedTextField(
+                        value = name.value,
+                        onValueChange = { value -> name.value = value },
+                        label = { Text("Название: ") })
+//                    }
                     val description = remember { mutableStateOf(course.description) }
-                    Column(Modifier.fillMaxWidth()) {
-                        Text("Описание: ")
-                        OutlinedTextField(
-                            value = description.value,
-                            onValueChange = { value -> description.value = value })
-                    }
+//                    Column(Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = description.value,
+                        onValueChange = { value -> description.value = value },
+                        label = { Text("Описание: ") })
+//                    }
                     val backgroundUrl = remember { mutableStateOf(course.backgroundUrl) }
-                    Column(Modifier.fillMaxWidth()) {
-                        Text("URL на картинку для фона: ")
-                        OutlinedTextField(
-                            value = backgroundUrl.value,
-                            onValueChange = { value -> backgroundUrl.value = value })
-                    }
+//                    Column(Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = backgroundUrl.value,
+                        onValueChange = { value -> backgroundUrl.value = value },
+                        label = { Text("URL на картинку для фона: ") })
+//                    }
 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(

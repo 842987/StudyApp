@@ -36,9 +36,19 @@ class SettingsViewModel : ViewModel() {
 
             is SettingsIntent.ChangeSettings -> {
                 viewModelScope.launch {
+                    _uiState.emit(SettingsState.Loading)
+
                     changeProfileSettingsUseCase.invoke(avatarUrl = intent.avatarUrl, username = intent.username)
+
+                    val userDto = AuthLocalDataSource.userDto!!
+
+                    _uiState.emit(
+                        SettingsState.Content(
+                            userDto.avatarUrl.orEmpty(), userDto.name!!,
+                            AuthLocalDataSource.email!!
+                        )
+                    )
                 }
-                getData()
             }
         }
     }

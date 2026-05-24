@@ -16,7 +16,6 @@ import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 import com.catoncat.studyapp.domain.entities.UserEntity
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import kotlin.coroutines.coroutineContext
 
 class CourseRepository(
     private val courseInfoDataSource: CourseInfoDataSource
@@ -107,60 +106,84 @@ class CourseRepository(
 
     suspend fun getCourse(courseEntity: CourseEntity): Result<CourseEntity> {
         return courseInfoDataSource.getCourse(courseEntity.id).mapCatching { courseDto ->
+            val lessons = courseDto.lessons.orEmpty().map { lessonDto ->
+//                    var opened = true
+
+
+
+//                    val requiredLessonsId =
+//                        lessonDto.requiredLessons.orEmpty().map { requiredLessonDto ->
+//                                RequiredLessonEntity(
+//                                   requiredLessonDto.id!!,
+//                                    requiredLessonDto.name!!
+//                                )
+//                            if (!requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id)) {
+//                                opened = false
+//                            }
+
+//                            Log.d("CourseRepository", lessonDto.id.toString())
+//                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.size.toString())
+//                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id).toString())
+//                            Log.d("CourseRepository", opened.toString())
+//                            requiredLessonDto.id!!
+//                        }.toPersistentList()
+                LessonEntity(
+                    lessonDto.id,
+                    lessonDto.name!!,
+                    lessonDto.imageUrl!!,
+                    lessonDto.imageUrlOnCompleted,
+                    lessonDto.imageUrlOnLocked,
+                    lessonDto.x!!,
+                    lessonDto.y!!,
+                    lessonDto.exercises.orEmpty().map { exerciseDto ->
+                        ExerciseEntity(
+                            exerciseDto.id,
+                            exerciseDto.name!!,
+                            exerciseDto.text!!,
+                            exerciseDto.typeName!!,
+                            exerciseDto.answers.orEmpty().map { answerDto ->
+                                AnswerEntity(
+                                    answerDto.id!!,
+                                    answerDto.text!!,
+                                    answerDto.correct!!
+                                )
+                            }.toPersistentList()
+                        )
+                    }.toPersistentList(),
+                    requiredLessons = lessonDto.requiredLessons.toPersistentList(),
+                    opened = true,
+                    completed = lessonDto.usersCompletedId.contains(mapOf(Pair("user_id",AuthLocalDataSource.userDto?.id!!)))
+                )
+            }
+
+            lessons.forEach { lessonEntity ->
+                lessonEntity.requiredLessons.forEach { requiredLessonId ->
+                    var completed = false
+                    lessons.forEach {
+                        if (it.id==requiredLessonId && it.completed) {
+                            completed = true
+                            return@forEach
+                        }
+                    }
+                    if (!completed) {
+                        lessonEntity.opened = false
+                        return@forEach
+                    }
+                }
+            }
+
             CourseEntity(
                 courseDto.id!!,
                 courseEntity.name,
                 courseDto.description!!,
                 courseDto.backgroundUrl!!,
                 UserEntity(courseDto.creator?.id!!, courseDto.creator.name!!),
-                courseDto.lessons.orEmpty().map { lessonDto ->
-                    var opened = true
-                    val requiredLessonsId =
-                        lessonDto.requiredLessons.orEmpty().map { requiredLessonDto ->
-//                                RequiredLessonEntity(
-//                                   requiredLessonDto.id!!,
-//                                    requiredLessonDto.name!!
-//                                )
-                            if (!requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id)) {
-                                opened = false
-                            }
-
-                            Log.d("CourseRepository", lessonDto.id.toString())
-                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.size.toString())
-                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id).toString())
-                            Log.d("CourseRepository", opened.toString())
-                            requiredLessonDto.id!!
-                        }.toPersistentList()
-                    LessonEntity(
-                        lessonDto.id,
-                        lessonDto.name!!,
-                        lessonDto.imageUrl!!,
-                        lessonDto.imageUrlOnCompleted,
-                        lessonDto.imageUrlOnLocked,
-                        lessonDto.x!!,
-                        lessonDto.y!!,
-                        lessonDto.exercises.orEmpty().map { exerciseDto ->
-                            ExerciseEntity(
-                                exerciseDto.id,
-                                exerciseDto.name!!,
-                                exerciseDto.text!!,
-                                exerciseDto.typeName!!,
-                                exerciseDto.answers.orEmpty().map { answerDto ->
-                                    AnswerEntity(
-                                        answerDto.id!!,
-                                        answerDto.text!!,
-                                        answerDto.correct!!
-                                    )
-                                }.toPersistentList()
-                            )
-                        }.toPersistentList(),
-                        requiredLessons = requiredLessonsId,
-                        opened = opened,
-                        completed = lessonDto.usersCompletedId.contains(mapOf(Pair("user_id",AuthLocalDataSource.userDto?.id!!)))
-                    )
-                }.toPersistentList()
+                lessons = lessons.toPersistentList()
             )
         }
+
+
+
     }
 
 
@@ -175,6 +198,8 @@ class CourseRepository(
         val lessonsToDelete = mutableListOf<Long>()
         val exercisesToDelete = mutableListOf<Long>()
         val answersToDelete = mutableListOf<Long>()
+        val lessonIdsRequiredLessonIds = mutableListOf<Map<String, Long>>()
+
         val tag = "CourseRepository"
         courseEntity.lessons.forEach { lessonEntity ->
             if (!lessonEntity.deleted && lessonEntity.id == null) {
@@ -186,6 +211,9 @@ class CourseRepository(
                     lessonEntity.y,
                     courseId = courseEntity.id
                 )).id
+                lessonEntity.requiredLessons.forEach { requiredLessonId ->
+                    lessonIdsRequiredLessonIds.add(mapOf(Pair("lesson_id", lessonEntity.id!!), Pair("required_lesson_id", requiredLessonId)))
+                }
             } else if (lessonEntity.deleted && lessonEntity.id!=null) {
                 lessonsToDelete.add(lessonEntity.id!!)
 //                courseInfoDataSource.deleteLesson(lessonEntity.id!!)
@@ -201,6 +229,9 @@ class CourseRepository(
                 )
 //                courseInfoDataSource.updateLesson(lessonDto)
                 lessons.add(lessonDto)
+                lessonEntity.requiredLessons.forEach { requiredLessonId ->
+                    lessonIdsRequiredLessonIds.add(mapOf(Pair("lesson_id", lessonEntity.id!!), Pair("required_lesson_id", requiredLessonId)))
+                }
             }
             lessonEntity.exercises.forEach { exerciseEntity ->
                 lessonEntity.id?:Log.d(tag,"LESSON NULL")
@@ -253,6 +284,13 @@ class CourseRepository(
             }
         }
 
+        val lessonIds = mutableListOf<Long>()
+        lessons.forEach { lesson ->
+            lesson.id?.let {
+                lessonIds.add(lesson.id)
+            }
+        }
+
 
         courseInfoDataSource.updateCourse(
             courseDto = CourseUpdateDto(
@@ -268,6 +306,11 @@ class CourseRepository(
 //            exercisesToDeleteIdList = exercisesToDelete,
 //            answersDeleteIdList = answersToDelete
         )
+
+        courseInfoDataSource.deleteAllLessonsRequiredLessons(lessonIds)
+
+        courseInfoDataSource.addLessonToRequiredLessons(lessonIdsRequiredLessonIds)
+
 
         courseInfoDataSource.updateLessons(lessons)
         courseInfoDataSource.updateExercises(exercises)

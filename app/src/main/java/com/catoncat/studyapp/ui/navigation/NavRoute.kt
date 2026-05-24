@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.systemGestureExclusion
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.ShortNavigationBar
@@ -15,8 +16,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Typeface
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
@@ -77,7 +80,6 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>, avatarUrl: MutableState
 
     val currentRoute = backStack.last();
 
-
     if (currentRoute != AppRoute.CourseCreating && currentRoute != AppRoute.Auth && currentRoute != AppRoute.CourseViewing) {
         ShortNavigationBar {
             ShortNavigationBarItem(
@@ -94,18 +96,22 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>, avatarUrl: MutableState
             )
             ShortNavigationBarItem(
                 currentRoute == AppRoute.TakenCourses,
-                icon = { Text("Изучаемые",Modifier.width(intrinsicSize = IntrinsicSize.Max)) }, onClick = {
+                icon = { Text("Изучаемые", textAlign = TextAlign.Center)}, onClick = {
                     backStack.add(AppRoute.TakenCourses)
                 }, label = null
             )
             ShortNavigationBarItem(
                 currentRoute == AppRoute.Settings,
-                icon = { AsyncImage(
-                    model = avatarUrl.value/*AuthLocalDataSource.userDto?.avatarUrl?:""*/,
-                    contentDescription = "Avatar",
-                    error = painterResource(com.catoncat.studyapp.R.drawable.baseline_account_circle_24),
-                    modifier = Modifier.clip(CircleShape).requiredSize(35.dp)
-                ) }, onClick = {
+                icon = {
+                    AsyncImage(
+                        model = avatarUrl.value/*AuthLocalDataSource.userDto?.avatarUrl?:""*/,
+                        contentDescription = "Avatar",
+                        error = painterResource(com.catoncat.studyapp.R.drawable.baseline_account_circle_24),
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .requiredSize(35.dp)
+                    )
+                }, onClick = {
                     backStack.add(AppRoute.Settings)
                 }, label = null
             )

@@ -26,6 +26,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -102,6 +103,7 @@ fun CourseViewingScreen(
         } else {
             LessonCompletedScreen(onNextButtonClicked = {
                 chosenLesson.value = null
+                viewModel.getData()
             })
         }
     }
@@ -290,7 +292,7 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                 ExerciseType.Input.typeName -> {
 
                     val inputText = remember { mutableStateOf("") }
-                    TextField(value = inputText.value, onValueChange = { value ->
+                    OutlinedTextField(value = inputText.value, onValueChange = { value ->
                         inputText.value = value
                         if (!value.isEmpty()) {
                             rightChosen.value = false
@@ -304,13 +306,13 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                         } else {
                             canAnswer.value = false
                         }
-                    }, Modifier.align(Alignment.Center))
+                    }, Modifier.align(Alignment.Center), label = {Text("Ответ")})
                 }
 
                 ExerciseType.Choose.typeName -> {
                     val checkedAnswerId = remember { mutableLongStateOf(-1) }
                     Column(
-                        Modifier
+                        Modifier.fillMaxWidth()
                             .selectableGroup()
                             .align(Alignment.Center)
                     ) {
@@ -326,7 +328,7 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                                         Log.e("Test", "${answer.correct}")
                                     }
                                     canAnswer.value = checked
-                                }) {
+                                }, modifier = Modifier.fillMaxWidth()) {
                                 Text(answer.text)
                             }
                         }
@@ -445,7 +447,7 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
 fun LessonCompletedScreen(onNextButtonClicked: () -> Unit) {
     Box(Modifier.fillMaxSize()) {
         Text("Урок пройден!", Modifier.align(Alignment.Center))
-        Button(onClick = onNextButtonClicked, Modifier.align(Alignment.BottomCenter)) {
+        Button(onClick = onNextButtonClicked, Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
             Text("Дальше")
         }
     }

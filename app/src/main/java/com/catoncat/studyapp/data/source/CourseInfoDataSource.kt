@@ -175,12 +175,15 @@ class CourseInfoDataSource {
 //            , lesson_required_lesson!lesson_id(required_lesson_id) required_lesson:lesson!lesson_id(required_lesson_id,users_completed_id:users(id))
             result.lessons?.forEach { lessonDto ->
                 val requiredLessons = Network.supabase.from("lesson_required_lesson")
-                    .select(Columns.raw("id:required_lesson_id, users_completed_lesson:lesson!required_lesson_id(users_completed_lesson(user_id))")) {
+                    .select(Columns.raw("lesson!required_lesson_id(id)")) {
                         filter {
                             eq("lesson_id", lessonDto.id!!)
                         }
-                    }.decodeList<RequiredLessonDto>()
-                lessonDto.requiredLessons = requiredLessons
+                    }.decodeList<Map<String,Map<String, Long>>>()
+
+                lessonDto.requiredLessons = requiredLessons.map {
+                    it["lesson"]!!["id"]!!
+                }
             }
 //            result.lessons.forEach { lessonDto ->
 //                val requiredLesson = Network.supabase.from("lesson_required_lesson")
@@ -223,9 +226,19 @@ class CourseInfoDataSource {
 //        }
 //    }
 
+    suspend fun addLessonToRequiredLessons(lessonIdsRequiredLessonIds: List<Map<String, Long>>) = withContext(
+        Dispatchers.IO
+    ) {
+        Network.supabase.from("lesson_required_lesson").upsert(lessonIdsRequiredLessonIds) {
+            onConflict = "lesson_id, required_lesson_id"
+        }
+    }
+
     suspend fun insertToUsersCompletedLesson(body: Map<String, Long>) =
         withContext(Dispatchers.IO) {
-            Network.supabase.from("users_completed_lesson").insert(body)
+            Network.supabase.from("users_completed_lesson").upsert(body) {
+                onConflict = "user_id, lesson_id"
+            }
         }
 
     suspend fun createCourse(courseDto: CourseCreateDto) = withContext(Dispatchers.IO) {
@@ -234,10 +247,20 @@ class CourseInfoDataSource {
         }
     }
 
+    suspend fun deleteAllLessonsRequiredLessons(lessonIds: List<Long>) = withContext(Dispatchers.IO) {
+        Network.supabase.from("lesson_required_lesson").delete {
+            filter {
+                isIn("lesson_id", lessonIds)
+            }
+        }
+    }
+
     suspend fun insertToUsersTakenCourse(courseId: Long, userId: Long) =
         withContext(Dispatchers.IO) {
             Network.supabase.from("users_taken_course")
-                .insert(mapOf(Pair("course_id", courseId), Pair("user_id", userId)))
+                .upsert(mapOf(Pair("course_id", courseId), Pair("user_id", userId))) {
+                    onConflict = "course_id, user_id"
+                }
         }
 
     suspend fun updateLessons(lessonDtoList: List<LessonUpdateDto>) =
