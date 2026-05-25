@@ -24,48 +24,12 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 object Network {
-    //    const val HOST = "http://10.0.2.2:8080"
-//    const val HOST = "http://192.168.1.56:8080"
-
-    //    val client by lazy {
-//        HttpClient(CIO) {
-//            install(ContentNegotiation) {
-//                json(
-//                    Json {
-//                        isLenient = true
-//                        ignoreUnknownKeys = true
-//                    }
-//                )
-//            }
-//            install(Logging) {
-//                logger = object : Logger {
-//                    override fun log(message: String) {
-//                        Log.d("KTOR", message)
-//                    }
-//                }
-//            }
-//
-//            defaultRequest {
-//                contentType(ContentType.Application.Json)
-//            }
-//        }
-//    }
     @OptIn(SupabaseInternal::class)
     val supabase = createSupabaseClient(
         supabaseUrl = "https://drayamkugnignib.beget.app",
         supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzc5NDA4MDAwLCJleHAiOjE5MzcxNzQ0MDB9.zOt0hMIi2HyVSuoEqv95dHoTsU0xYBY-yv4X0bCDLv8"
     ) {
-        install(Postgrest) {
-//            defaultSchema = "schema" // default: "public"
-//            propertyConversionMethod =
-//                PropertyConversionMethod.SERIAL_NAME // default: PropertyConversionMethod.CAMEL_CASE_TO_SNAKE_CASE
-        }
-
-//        defaultSerializer = KotlinXSerializer(
-//            Json(supabaseJson) {
-//                explicitNulls = false
-//            }
-//        )
+        install(Postgrest)
 
         install(Auth)
         defaultLogLevel = LogLevel.INFO
@@ -74,9 +38,6 @@ object Network {
                 level = io.ktor.client.plugins.logging.LogLevel.ALL
                 logger = Logger.ANDROID
             }
-//            Logging {
-//                level = io
-//            }
         }
     }
 }

@@ -1,27 +1,19 @@
 package com.catoncat.studyapp.ui.screen.allcourses
 
-import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
-import com.catoncat.studyapp.data.source.CourseInfoDataSource
-import com.catoncat.studyapp.data.source.CourseLocalDataSource
+import com.catoncat.studyapp.data.source.CourseNetworkDataSource
 import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
 import com.catoncat.studyapp.domain.allcourses.TakeCourseUseCase
-import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
-import com.catoncat.studyapp.domain.coursecreating.UpdateCourseUseCase
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
-import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.random.Random
-import kotlin.random.nextInt
 
 class AllCoursesViewModel : ViewModel() {
     private val mutex = Mutex()
@@ -30,24 +22,16 @@ class AllCoursesViewModel : ViewModel() {
     val uiState: StateFlow<AllCoursesState> = _uiState.asStateFlow();
     private val actualResult: MutableList<AllCoursesState.Item> = mutableListOf()
     private val getAllCoursesUseCase = GetAllCoursesUseCase(
-        courseRepository = CourseRepository(CourseInfoDataSource())
+        courseRepository = CourseRepository(CourseNetworkDataSource())
     )
     private val takeCourseUseCase = TakeCourseUseCase(
         courseRepository = CourseRepository(
-            CourseInfoDataSource()
+            CourseNetworkDataSource()
         )
     )
 
-
-//    init {
-//        getData()
-//    }
-
-
     fun onIntent(
-        intent:
-
-        AllCoursesIntent
+        intent: AllCoursesIntent
     ) {
         when (intent) {
             is AllCoursesIntent.LoadMore -> {
@@ -68,37 +52,6 @@ class AllCoursesViewModel : ViewModel() {
 
     fun getData(query: String = "", offset: Int = 0) {
         viewModelScope.launch {
-//            _uiState.emit(AllCoursesState.Loading)
-//
-//            delay(1500)
-//
-//            for (i in 0..10) {
-////                actualResult.add(
-//
-//
-////                        when (Random.nextInt(0, 3)) {
-////                            0 -> AllCoursesState.Item.Course(
-////                                CourseEntity(
-////                                    "Test",
-////                                    "Test description"
-////                                )
-////                            )
-////                            1 -> AllCoursesState.Item.Loading
-////                            else ->
-////                                AllCoursesState.Item.Error
-////                        }
-////                    AllCoursesState.Item.Course(
-////                        CourseEntity(
-////                            "Test",
-////                            "Test description"
-////                        )
-////                    )
-////                )
-//
-//
-//            }
-//
-//            _uiState.emit(AllCoursesState.Content(true, actualResult.toPersistentList()))
             val isFirstPage = offset == 0
             viewModelScope.launch {
                 _uiState.emit(
@@ -144,6 +97,8 @@ class AllCoursesViewModel : ViewModel() {
             }
         }
     }
+
+    private val lastPage = false
 
     private suspend fun addItemsToState(
         isFirstPage: Boolean,

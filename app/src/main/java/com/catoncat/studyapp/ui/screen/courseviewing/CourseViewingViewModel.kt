@@ -3,7 +3,7 @@ package com.catoncat.studyapp.ui.screen.courseviewing
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
-import com.catoncat.studyapp.data.source.CourseInfoDataSource
+import com.catoncat.studyapp.data.source.CourseNetworkDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.domain.coursecreating.GetCourseUseCase
 import com.catoncat.studyapp.domain.courseviewing.CompleteLessonUseCase
@@ -16,16 +16,14 @@ class CourseViewingViewModel: ViewModel() {
     private val _uiState: MutableStateFlow<CourseViewingState> =
         MutableStateFlow(CourseViewingState.Loading);
     val uiState: StateFlow<CourseViewingState> = _uiState.asStateFlow();
-
-    //    private val actualResult: MutableList<CourseCreatingState.Lesson> = mutableListOf()
     private val getCourseUseCase = GetCourseUseCase(
         courseRepository = CourseRepository(
-            CourseInfoDataSource()
+            CourseNetworkDataSource()
         )
     )
     private val completeLessonUseCase = CompleteLessonUseCase(
         courseRepository = CourseRepository(
-            CourseInfoDataSource()
+            CourseNetworkDataSource()
         )
     )
 

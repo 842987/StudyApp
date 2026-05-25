@@ -3,19 +3,19 @@ package com.catoncat.studyapp.data.source
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.catoncat.studyapp.App
 import com.catoncat.studyapp.data.dto.UserDto
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.io.IOException
 import kotlin.io.encoding.Base64
 
 object AuthLocalDataSource {
-
-//    var id: Long? = null
-//    var username: String? = null
     var email: String? = null
     var password: String? = null
 
@@ -38,7 +38,7 @@ object AuthLocalDataSource {
 //        if (!isInit) {
 //            _cacheToken = App.context.dataStore.data.map { preferences ->
 //                preferences[TOKEN]
-//            }.firstOrNull()
+//            }.first()
 //            isInit = true
 //        }
 //        return _cacheToken
@@ -57,6 +57,8 @@ object AuthLocalDataSource {
 //
 //    fun clearToken() {
 //        _cacheToken = null
+//        this.email = null
+//        this.password = null
 //    }
 //
 //    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")

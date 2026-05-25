@@ -31,6 +31,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SmallFloatingActionButton
@@ -101,8 +102,6 @@ fun CourseCreatingScreen(
                         Log.d("CourseCreatingScreen", exerciseEntity.name)
                     }
                 }
-//                    updateKey.intValue++
-                //                backStack.remove(AppRoute.CourseCreating)
             },
             onNavigateToPreviousScreen = {
                 backStack.remove(AppRoute.CourseCreating)
@@ -131,35 +130,13 @@ fun CourseCreatingErrorState(reason: String) {
 @Composable
 fun CourseCreatingContentState(
     content: CourseCreatingState.Content,
-    //    onCreateAnswer: (CourseCreatingState.Answer) -> Unit,
-    //    onUpdateAnswer: (CourseCreatingState.Answer) -> Unit,
-    //    onUpdateExercise: (CourseCreatingState.Exercise) -> Unit
-    //    onUpdateLesson: (CourseCreatingState.Lesson) -> Unit,
-    //    onCreateLesson: (CourseCreatingState.Lesson) -> Unit
     onUpdateCourse: (course: CourseEntity) -> Unit,
-//    onAddLesson: (lesson: LessonEntity) -> Unit,
-//    onAddExercise(lesson)
     onNavigateToPreviousScreen: () -> Unit
 ) {
-    //    Canvas(Modifier.fillMaxSize()) {
-    //        content.lessons.forEach {
-    //            when(it) {
-    //                is CourseCreatingState.Lesson.Content -> {
-    //                    drawCircle(Color.Green, 10.0f, Offset(it.x, it.y))
-    //                }
-    //                CourseCreatingState.Lesson.Error -> TODO("Lesson error")
-    //            }
-    //
-    //        }
-    //    }
 
     val scale = remember { mutableFloatStateOf(1.0f) }
     val offset = remember { mutableStateOf(Offset.Zero) }
     val newLessonOffset = remember { mutableStateOf(Offset.Zero) }
-
-//    val painter = rememberAsyncImagePainter(content.course.backgroundUrl)
-//    painter.state.collectAsState().value.painter!!.intrinsicSize
-
     val clickedLesson = remember {
         mutableStateOf(
             LessonEntity(
@@ -173,14 +150,6 @@ fun CourseCreatingContentState(
                 persistentListOf(),
                 persistentListOf()
             )
-            //            CourseCreatingState.Lesson(
-            //                0.0f,
-            //                0.0f,
-            //                "",
-            //                "Без названия",
-            //                0,
-            //                persistentListOf()
-            //        )
         )
     }
     val clickedLessonIndex = remember { mutableIntStateOf(-1) }
@@ -191,7 +160,6 @@ fun CourseCreatingContentState(
     val showEditCourseDialog = remember { mutableStateOf(false) }
     val lessons = remember { mutableStateOf(content.course.lessons) }
     val courseName = remember { mutableStateOf(content.course.name) }
-    //    val showEditExercisesDialog = remember { mutableStateOf(false) }
 
     val changed = remember { mutableStateOf(false) }
 
@@ -215,20 +183,13 @@ fun CourseCreatingContentState(
         clickedLesson.value,
         content.course.lessons.toMutableList(),
         showEditDialog,
-        //        onSaveButton = { lesson ->
-        //            onUpdateLesson(lesson)
-        //        },
         onSaveButton = null,
         onDeleteButton = { index, lesson ->
-            //            content.course.lessons = content.course.lessons.remove(lesson)
-            //            content.course.lessons = content.course.lessons.remove(lesson)
-            //            lessons.value = content.course.lessons
             lesson.deleted = true
             val newLessons = content.course.lessons.toMutableList()
             newLessons[index] = lesson
             content.course.lessons = newLessons.toPersistentList()
             updateLessonsKey.intValue++
-//                lessons.value = content.course.lessons
         },
         index = clickedLessonIndex.intValue,
         onUpdateLesson = { index, entity ->
@@ -240,16 +201,6 @@ fun CourseCreatingContentState(
     )
     EditLessonDialog(
         "Добавление урока",
-        //        CourseCreatingState.Lesson(
-        //            Offset.Zero.x,
-        //            Offset.Zero.y,
-        ////            (newLessonOffset.value).x,
-        ////            (newLessonOffset.value).y,
-        //            "",
-        //            "Без названия",
-        //            0,
-        //            persistentListOf()
-        //        ),
         LessonEntity(
             null,
             "",
@@ -269,13 +220,9 @@ fun CourseCreatingContentState(
             lessons.value = content.course.lessons
 
             Log.d("CourseCreatingContentState", content.course.lessons.size.toString())
-            //            onCreateLesson(lesson)
         },
         onDeleteButton = { _, _ -> },
         onUpdateLesson = { index, lessonEntity ->
-//                val newLessons = content.course.lessons.toMutableList()
-//                newLessons[index] = entity
-//                content.course.lessons = newLessons.toPersistentList()
             content.course.lessons = content.course.lessons.add(lessonEntity)
         },
         index = clickedLessonIndex.intValue,
@@ -286,8 +233,6 @@ fun CourseCreatingContentState(
         onSave = { onUpdateCourse(content.course) },
         onNotSave = onNavigateToPreviousScreen
     )
-    //    AddLessonDialog(showAddDialog)
-    //    EditExercisesDialog(content.exercises, showEditExercisesDialog)
 
     Box(Modifier.fillMaxSize()) {
 
@@ -295,8 +240,6 @@ fun CourseCreatingContentState(
         Box(
             Modifier
                 .requiredSize(2500.dp, 2500.dp)
-                //                .background(Color.Cyan)
-                //                .border(5.dp,Color.Green)
                 .scale(scale = scale.floatValue)
                 .offset {
                     IntOffset(
@@ -304,12 +247,6 @@ fun CourseCreatingContentState(
                         offset.value.y.roundToInt()
                     )
                 }
-                //                .graphicsLayer(
-                //                    scaleX = scale.floatValue,
-                //                    scaleY = scale.floatValue,
-                //                    translationX = offset.value.x,
-                //                    translationY = offset.value.y
-                //                )
 
                 .pointerInput(Unit) {
                     detectTransformGestures { centroid, pan, zoom, rotation ->
@@ -319,10 +256,6 @@ fun CourseCreatingContentState(
                         Log.d("CourseCreatingState", offset.toString())
                     }
                 }
-            //                .transformable(rememberTransformableState { zoomChange, panChange, rotationChange ->
-            //                    scale.floatValue *= zoomChange
-            //                    offset.value += panChange
-            //                }, lockRotationOnZoomPan = true, enabled = true)
         ) {
             val error = remember { mutableStateOf(false) }
             if (error.value) {
@@ -331,13 +264,10 @@ fun CourseCreatingContentState(
                 }
             }
 
-//            Image()
-
             AsyncImage(
                 model = content.course.backgroundUrl,
                 contentDescription = "Course background",
                 modifier = Modifier.fillMaxSize(),
-//                contentScale = ContentScale.Fit,
                 onError = {
                     error.value = true
                 })
@@ -346,8 +276,6 @@ fun CourseCreatingContentState(
                 lessons.value.forEachIndexed { index, lesson ->
                     if (!lesson.deleted) {
 
-                        //                when (it) {
-                        //                    is CourseCreatingState.Lesson -> {
                         val x = remember { mutableFloatStateOf(lesson.x) }
                         val y = remember { mutableFloatStateOf(lesson.y) }
                         val lessonImageLoadingError = remember { mutableStateOf(false) }
@@ -380,7 +308,7 @@ fun CourseCreatingContentState(
                                     onError = {
                                         lessonImageLoadingError.value = true
                                     })
-                                Text(lesson.name, color = Color.White, textAlign = TextAlign.Center)
+                                Text(lesson.name, style = Typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, textAlign = TextAlign.Center)
                             }
                         } else {
                             Button(
@@ -391,7 +319,6 @@ fun CourseCreatingContentState(
                                     changed.value = true
                                 },
                                 Modifier
-                                    //                        .size(50.dp)
                                     .offset {
                                         IntOffset(
                                             x.floatValue.roundToInt(),
@@ -404,13 +331,8 @@ fun CourseCreatingContentState(
                                         lesson.x += o.x
                                         lesson.y += o.y
                                     })
-                            ) { Text(lesson.name) }
+                            ) { Text(lesson.name,  style = Typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground) }
                         }
-                        //            }
-                        //        }
-
-                        //                    CourseCreatingState.Lesson.Error -> TODO()
-                        //                }
                     }
                 }
             }
@@ -457,34 +379,14 @@ fun CourseCreatingContentState(
                     changed.value = true
                 },
                 modifier = Modifier.padding(end = 5.dp)
-                //                modifier = Modifier.align(Alignment.BottomEnd)
             ) { Text("+") }
             FloatingActionButton(
                 onClick = {
                     showEditCourseDialog.value = true
                     changed.value = true
                 },
-                //                modifier = Modifier.align(Alignment.BottomEnd)
             ) { Text("⚙") }
         }
-
-        //        BottomAppBar(
-        //            modifier = Modifier.align(Alignment.BottomCenter),
-        //            actions = {
-        //                Button(
-        //                    onClick = {
-        //                        showAddDialog.value = true
-        //                    },
-        ////                    .padding(10.dp)
-        //                ) { Text("Добавить урок") }
-        //                Button(
-        //                    onClick = {
-        //                        showEditExercisesDialog.value = true
-        //                    },
-        ////                    .padding(10.dp)
-        //                ) { Text("Задания") }
-        //            },
-        //        )
     }
 }
 
@@ -500,11 +402,8 @@ fun EditLessonDialog(
     onUpdateLesson: (index: Int, (LessonEntity)) -> Unit,
     edit: Boolean
 ) {
-    //    val newLesson = lesson.copy()
     if (show.value) {
         val name = remember { mutableStateOf(editingLesson.name) }
-        //        val requiredLessons =
-        //            remember { mutableStateListOf<LessonEntity>() }
         val exercises = remember { mutableStateOf(editingLesson.exercises) }
         Dialog(
             onDismissRequest = { show.value = false },
@@ -526,9 +425,7 @@ fun EditLessonDialog(
                     Modifier
                         .fillMaxSize()
                         .padding(10.dp)
-                        //                        .height(500.dp)
                         .verticalScroll(rememberScrollState()),
-//                    verticalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     Text(
                         text = title,
@@ -539,7 +436,6 @@ fun EditLessonDialog(
                     OutlinedTextField(value = name.value, onValueChange = { value ->
                         name.value = value
                         editingLesson.name = name.value
-                        //                        lesson.name = value
                     }, label = { Text("Название") })
 
                     val imageUrl = remember { mutableStateOf(editingLesson.imageUrl) }
@@ -583,18 +479,9 @@ fun EditLessonDialog(
                         }
                     }
 
-                    //                    val requiredLessons =
-                    //                        remember { mutableStateOf(persistentListOf<LessonEntity>()) }
-
-                    //                    val requiredLessons = mutableListOf<LessonEntity>()
-
-                    //                    LazyColumn() {
                     if (showListOfLessons.value) {
                         OutlinedCard {
-
-
                             lessons.forEach { requiredLesson ->
-//                                if(requiredLesson.)
                                 val checked = remember {
                                     mutableStateOf(
                                         if (requiredLesson.id == null) false else editingLesson.requiredLessons.contains(
@@ -602,61 +489,38 @@ fun EditLessonDialog(
                                         )
                                     )
                                 }
-                                //                            item {
                                 Row(Modifier
                                     .fillMaxWidth()
                                     .padding(5.dp)) {
                                     Text(text = "${requiredLesson.name} (ID: ${requiredLesson.id ?: "ещё нет"})")
                                     Checkbox(
                                         enabled = requiredLesson.id != null,
-                                        checked = /*requiredLessons.value.contains(requiredLesson)*/checked.value,
+                                        checked = checked.value,
                                         onCheckedChange = { value ->
-//                                            if (!value && checked.value) {
-//                                                requiredLesson.
-//                                            }
                                             checked.value = value
                                             if (value) {
                                                 editingLesson.requiredLessons =
                                                     editingLesson.requiredLessons.add(requiredLesson.id!!)
-
-                                                //                                        requiredLessons.value =
-                                                //                                            requiredLessons.value.add(requiredLesson)
                                             } else {
                                                 editingLesson.requiredLessons =
                                                     editingLesson.requiredLessons.remove(
                                                         requiredLesson.id!!
                                                     )
-                                                //                                        requiredLessons.value =
-                                                //                                            requiredLessons.value.remove(requiredLesson)
                                             }
                                         })
                                 }
 
-                                //                            }
                             }
                         }
                     }
-                    //                    }
-
-//                    if (edit) {
 
                     Text("Задания")
-                    //                    LazyColumn(
-                    //                        Modifier
-                    //                            .fillMaxWidth()
-                    //
-                    //                            .padding(5.dp)
-                    //                    ) {
 
 
                     exercises.value.forEach { exercise ->
                         val showExercise = remember { mutableStateOf(!exercise.deleted) }
                         if (showExercise.value) {
-                            //                            item {
                             OutlinedCard(
-                                //                            onClick = {
-                                //                                show.value = !show.value
-                                //                            },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = 5.dp),
@@ -679,7 +543,6 @@ fun EditLessonDialog(
                                                     exerciseName.value = value
                                                     exercise.name = value
                                                 }, label = { Text("Название") }
-                                                //                                                    textStyle = Typography.titleLarge
                                             )
                                         }
 
@@ -707,14 +570,8 @@ fun EditLessonDialog(
                                                     ),
                                                 text = type.value
                                             )
-                                            //                                        OutlinedTextField(value = type.value, onValueChange = {}, Modifier.clickable(onClick = {expanded.value=!expanded.value}))
 
                                             DropdownMenu(
-                                                //                                            expanded = expanded.value,
-                                                //                                            onExpandedChange = { value->
-                                                //                                                expanded.value =
-                                                //                                                    value
-                                                //                                            }) {
                                                 expanded = expanded.value,
                                                 onDismissRequest = {
                                                     expanded.value = false
@@ -751,16 +608,12 @@ fun EditLessonDialog(
                                             val answers =
                                                 remember { mutableStateOf(exercise.answers) }
 
-                                            //                                        LazyColumn() {
-//                                                Card {
-
 
                                             answers.value.forEach { answer ->
                                                 val showAnswer =
                                                     remember { mutableStateOf(!answer.deleted) }
                                                 if (showAnswer.value) {
                                                     OutlinedCard(Modifier.padding(bottom = 5.dp)) {
-                                                        //                                                item {
                                                         Column(Modifier.padding(5.dp)) {
                                                             Row {
                                                                 val answerText =
@@ -798,13 +651,10 @@ fun EditLessonDialog(
                                                             }
                                                             Button(
                                                                 onClick = {
-                                                                    //                                                        answers.value = answers.value.remove(answer)
-                                                                    //                                                                exercise.answers =
-                                                                    //                                                                    exercise.answers.remove(answer)
-                                                                    //                                                                answers.value = exercise.answers
+                                                                    answers.value = exercise.answers
                                                                     answer.deleted = true
                                                                     showAnswer.value = false
-                                                                    //                                                        exercise.answers = answers.value
+                                                                    exercise.answers = answers.value
                                                                 },
                                                                 Modifier.fillMaxWidth()
                                                             ) { Text("Удалить") }
@@ -812,11 +662,8 @@ fun EditLessonDialog(
                                                     }
                                                 }
                                             }
-//                                                }
+
                                             Button(onClick = {
-                                                //                                            exercise.answers = exercise.answers.add(
-                                                //                                                CourseCreatingState.Answer(0, "", false)
-                                                //                                            )
                                                 exercise.answers =
                                                     exercise.answers.add(
                                                         AnswerEntity(
@@ -828,16 +675,12 @@ fun EditLessonDialog(
                                                 answers.value = exercise.answers
                                             }) { Text("Добавить") }
                                         }
-                                        //                                            }
-                                        //                                        }
+
                                         Row(Modifier.fillMaxWidth()) {
                                             Button(
                                                 onClick = {
-                                                    //                                                lesson.exercises = lesson.exercises.remove(exercise)
-                                                    //                                                exercises.value = lesson.exercises
                                                     exercise.deleted = true
                                                     showExercise.value = false
-                                                    //                                                exercises.remove(exercise)
                                                 },
                                                 Modifier.weight(0.7f)
                                             ) {
@@ -865,18 +708,9 @@ fun EditLessonDialog(
 
 
                             }
-                            //                            }
-                            //                        }
                         }
                     }
                     Button(onClick = {
-                        //                        exercises.value = exercises.value.add(
-                        //                            CourseCreatingState.Exercise(
-                        //                                0, lesson.id, "Без названия", "",
-                        //                                ExerciseType.Choose.name, persistentListOf()
-                        //                            )
-                        //                        )
-                        //                        lesson.exercises = exercises.value
                         editingLesson.exercises = editingLesson.exercises.add(
                             ExerciseEntity(
                                 null, "Без названия", "",
@@ -884,9 +718,7 @@ fun EditLessonDialog(
                             )
                         )
                         exercises.value = editingLesson.exercises
-                        //                        Log.d("EditLessonDialog", lesson.exercises.size.toString())
                     }) { Text("Добавить") }
-//                    }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         if (edit) {
                             Button(
@@ -950,7 +782,6 @@ fun ChooseSaveOrNotSaveDialog(
                     Modifier
                         .fillMaxSize()
                         .padding(10.dp)
-                        //                        .height(500.dp)
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -974,12 +805,6 @@ fun ChooseSaveOrNotSaveDialog(
                                 show.value = false
                             },
                         ) { Text("Продолжить изменять") }
-//                        TextButton(
-//                            onClick = {
-//                                show.value = false
-//                                onSave()
-//                            },
-//                        ) { Text("Сохранить") }
                     }
                 }
             }
@@ -1016,27 +841,20 @@ fun EditCourseDialog(
                     Text("Редактирование курса", style = Typography.headlineMedium)
 
                     val name = remember { mutableStateOf(course.name) }
-//                    Column(Modifier.fillMaxWidth()) {
-
                     OutlinedTextField(
                         value = name.value,
                         onValueChange = { value -> name.value = value },
                         label = { Text("Название: ") })
-//                    }
                     val description = remember { mutableStateOf(course.description) }
-//                    Column(Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = description.value,
                         onValueChange = { value -> description.value = value },
                         label = { Text("Описание: ") })
-//                    }
                     val backgroundUrl = remember { mutableStateOf(course.backgroundUrl) }
-//                    Column(Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = backgroundUrl.value,
                         onValueChange = { value -> backgroundUrl.value = value },
                         label = { Text("URL на картинку для фона: ") })
-//                    }
 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(
@@ -1057,233 +875,3 @@ fun EditCourseDialog(
         }
     }
 }
-
-//@Composable
-//fun AddLessonDialog(show: MutableState<Boolean>) {
-//    if (show.value) {
-//        Dialog(
-//            onDismissRequest = { show.value = false }, DialogProperties(
-//                dismissOnBackPress = true,
-//                dismissOnClickOutside = false,
-//                usePlatformDefaultWidth = true,
-//            )
-//        ) {
-//
-//            Card(
-//                Modifier
-//                    .fillMaxWidth()
-//                    .height(IntrinsicSize.Max)
-//            ) {
-//                Column(
-//                    Modifier
-//                        .fillMaxSize()
-//                        .padding(10.dp)
-//                ) {
-//                    Text(
-//                        text = "Добавление урока",
-//                        style = Typography.headlineMedium,
-//                        modifier = Modifier.padding(bottom = 5.dp)
-//                    )
-//                    var name by remember { mutableStateOf(" ") }
-//                    Text("Название")
-//                    OutlinedTextField(value = name, onValueChange = { s -> name = s })
-//                    Text("Изображение")
-//                    Button(onClick = {}) { Text("Загрузить") }
-//                    Text("Уроки, которые нужно пройти, для разблокировки этого")
-//                    val lessons =
-//                        remember { mutableStateListOf<CourseCreatingState.Lesson>() }
-//                    Column() {
-//                        lessons.forEach { lesson ->
-//                            Text(lesson.name)
-//                        }
-//                    }
-//                    Button(onClick = {}) { Text("Добавить") }
-//
-//                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-//
-//                        TextButton(
-//                            modifier = Modifier.padding(end = 5.dp),
-//                            onClick = { show.value = false },
-//                        ) { Text("Отменить") }
-//                        TextButton(
-//                            onClick = { show.value = false },
-//                        ) { Text("Добавить") }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-//@Composable
-//fun EditExercisesDialog(
-//    exercises: PersistentList<CourseCreatingState.Exercise>,
-//    show: MutableState<Boolean>,
-////    onUpdateExercise: (CourseCreatingState.Exercise) -> Unit
-//) {
-//    val exercises = remember { mutableStateOf(exercises) }
-//    if (show.value) {
-//        Dialog(
-//            onDismissRequest = { show.value = false }, DialogProperties(
-//                dismissOnBackPress = true,
-//                dismissOnClickOutside = false,
-//                usePlatformDefaultWidth = true,
-//            )
-//        ) {
-//            Card(
-//                Modifier
-//                    .fillMaxWidth()
-//                    .height(IntrinsicSize.Max)
-//            ) {
-//                Column(
-//                    Modifier
-//                        .fillMaxSize()
-//                        .padding(10.dp)
-//                ) {
-//                    var editExercise = remember {
-//                        mutableStateOf(
-//                            CourseCreatingState.Exercise(
-//                                null, "", "", "",
-//                                persistentListOf()
-//                            )
-//                        )
-//                    }
-//                    val showEditExercise = remember { mutableStateOf(false) }
-//                    if (showEditExercise.value) {
-//                        Row(Modifier.fillMaxWidth()) {
-//                            Button(
-//                                onClick = { showEditExercise.value = false }
-//                            ) { Text("<-") }
-//                        }
-//                        Column {
-//                            val text = remember { mutableStateOf(editExercise.value.text) }
-//                            Text("Text")
-//                            OutlinedTextField(
-//                                value = text.value,
-//                                onValueChange = { value -> text.value = value })
-//                            Text("Answers")
-//                            val answers = remember { mutableStateOf(editExercise.value.answers) }
-//                            LazyColumn(
-//                                Modifier
-//                                    .fillMaxWidth()
-//                                    .height(350.dp)
-//                            ) {
-//                                answers.value.forEach { answer ->
-//                                    item {
-//                                        val answerText = remember { mutableStateOf(answer.text) }
-//                                        val checked =
-//                                            remember { mutableStateOf(answer.correct) }
-//                                        OutlinedCard {
-//                                            Column {
-//                                                OutlinedTextField(
-//                                                    value = answerText.value,
-//                                                    onValueChange = { value ->
-//                                                        answerText.value = value
-////                                                        CourseCreatingState.Answer(
-////                                                            answer.id,
-////                                                            answerText.value,
-////                                                            checked.value
-////                                                        )
-//                                                    })
-//                                                Row {
-//                                                    Text("Correct")
-//                                                    Checkbox(
-//                                                        checked = checked.value,
-//                                                        onCheckedChange = { value ->
-//                                                            checked.value = value
-////                                                        CourseCreatingIntent.UpdateAnswer(
-////                                                            CourseCreatingState.Answer(
-////                                                                answer.id,
-////                                                                answerText.value,
-////                                                                checked.value
-////                                                            )
-////                                                        )
-//                                                        })
-//                                                }
-//
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-//                                Button(onClick = {
-//                                    answers.value = answers.value.add(
-//                                        CourseCreatingState.Answer(
-//                                            null,
-//                                            "",
-//                                            false
-//                                        )
-//                                    )
-////                                    CourseCreatingIntent.UpdateAnswer(
-////                                        CourseCreatingState.Answer(
-////                                            answer.id,
-////                                            answerText.value,
-////                                            checked.value
-////                                        )
-////                                    )
-//                                }) { Text("+") }
-//                            }
-//                        }
-//                    } else {
-//                        Row(Modifier.fillMaxWidth()) {
-//                            Button(
-//                                onClick = { show.value = false }, Modifier.padding(end = 5.dp)
-//                            ) { Text("<-") }
-//                            Text("Задания", style = Typography.headlineMedium)
-//                        }
-//
-//                        LazyColumn(
-//                            Modifier
-//                                .fillMaxWidth()
-//                                .height(350.dp)
-//                                .padding(5.dp)
-//                        ) {
-//                            exercises.value.forEach { exercise ->
-//                                item {
-//                                    OutlinedCard(
-//                                        onClick = {
-//                                            editExercise.value = exercise
-//                                            showEditExercise.value = true
-//                                        },
-//                                        Modifier
-//                                            .fillMaxWidth()
-//                                            .padding(bottom = 5.dp)
-//                                    ) {
-//                                        Column(
-//                                            Modifier
-//                                                .fillMaxWidth()
-//                                                .padding(5.dp)
-//                                        ) {
-//                                            Text(exercise.name, style = Typography.titleLarge)
-//                                            Row(Modifier.fillMaxWidth()) {
-//                                                Text("Тип: ")
-//                                                Text(exercise.type)
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//
-//                        }
-//                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-//                            Button(
-//                                onClick = {
-//                                    exercises.value = exercises.value.add(
-//                                        CourseCreatingState.Exercise(
-//                                            null,
-//                                            "Без названия",
-//                                            "Без текста",
-//                                            "Choose",
-//                                            persistentListOf()
-//                                        )
-//                                    )
-//                                }
-//                            ) { Text("+") }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}

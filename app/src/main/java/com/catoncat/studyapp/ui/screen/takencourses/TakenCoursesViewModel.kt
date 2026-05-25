@@ -3,7 +3,7 @@ package com.catoncat.studyapp.ui.screen.takencourses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
-import com.catoncat.studyapp.data.source.CourseInfoDataSource
+import com.catoncat.studyapp.data.source.CourseNetworkDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 import com.catoncat.studyapp.domain.takencourses.GetTakenCoursesUseCase
@@ -22,7 +22,7 @@ class TakenCoursesViewModel : ViewModel() {
     val uiState: StateFlow<TakenCoursesState> = _uiState.asStateFlow();
     private val actualResult: MutableList<TakenCoursesState.Item> = mutableListOf()
     private val getTakenCoursesUseCase = GetTakenCoursesUseCase(
-        courseRepository = CourseRepository(CourseInfoDataSource())
+        courseRepository = CourseRepository(CourseNetworkDataSource())
     )
     init {
         getData()
@@ -48,7 +48,6 @@ class TakenCoursesViewModel : ViewModel() {
         viewModelScope.launch {
             val isFirstPage = offset == 0
             viewModelScope.launch {
-                // В начале определяем где нарисовать "крутилку"
                 _uiState.emit(
                     if (isFirstPage) {
                         TakenCoursesState.Loading
@@ -63,7 +62,6 @@ class TakenCoursesViewModel : ViewModel() {
                     }
                 )
 
-                // Запрашиваем данные
                 getTakenCoursesUseCase.invoke(offset).fold(
                     onSuccess = { data ->
                         addItemsToState(isFirstPage, data)

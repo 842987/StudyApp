@@ -3,14 +3,12 @@ package com.catoncat.studyapp.ui.screen.mycourses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.catoncat.studyapp.data.CourseRepository
-import com.catoncat.studyapp.data.source.CourseInfoDataSource
+import com.catoncat.studyapp.data.source.CourseNetworkDataSource
 import com.catoncat.studyapp.data.source.CourseLocalDataSource
-import com.catoncat.studyapp.domain.allcourses.GetAllCoursesUseCase
 import com.catoncat.studyapp.domain.entities.PagingCoursesEntity
 import com.catoncat.studyapp.domain.mycourses.CreateCourseUseCase
 import com.catoncat.studyapp.domain.mycourses.GetCoursesCreatedByUserUseCase
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,10 +24,10 @@ class MyCoursesViewModel : ViewModel() {
     private val actualResult: MutableList<MyCoursesState.Item> = mutableListOf()
     private val getMyCoursesUseCase = GetCoursesCreatedByUserUseCase(
         courseRepository = CourseRepository(
-            CourseInfoDataSource())
+            CourseNetworkDataSource())
     )
     private val createCourseUseCase = CreateCourseUseCase(courseRepository = CourseRepository(
-        CourseInfoDataSource()))
+        CourseNetworkDataSource()))
 
     init {
         getData()
@@ -62,7 +60,6 @@ class MyCoursesViewModel : ViewModel() {
         viewModelScope.launch {
             val isFirstPage = offset == 0
             viewModelScope.launch {
-                // В начале определяем где нарисовать "крутилку"
                 _uiState.emit(
                     if (isFirstPage) {
                         MyCoursesState.Loading
@@ -77,7 +74,6 @@ class MyCoursesViewModel : ViewModel() {
                     }
                 )
 
-                // Запрашиваем данные
                 getMyCoursesUseCase.invoke(offset).fold(
                     onSuccess = { data ->
                         addItemsToState(isFirstPage, data)

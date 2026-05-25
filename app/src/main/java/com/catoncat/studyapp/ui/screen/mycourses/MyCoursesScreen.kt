@@ -93,7 +93,7 @@ fun MyCoursesErrorState(
         Column {
             Text(currentState.reason)
             Button(onClick = onRefresh) {
-                Text("Refresh")
+                Text("Обновить")
             }
         }
     }
@@ -119,19 +119,20 @@ fun MyCoursesContentState(
 ) {
     val showCreateCourseDialog = remember { mutableStateOf(false) }
     val lazyColumnListState = rememberLazyListState()
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val layoutInfo = lazyColumnListState.layoutInfo
+            val totalItemsCount = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
 
-//    val isNeededLoadMore by remember {
-//        derivedStateOf {
-//            val lastVisibleItem =
-//                lazyColumnListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: Int.MIN_VALUE
-//            val totalItems = lazyColumnListState.layoutInfo.totalItemsCount
-//            lastVisibleItem >= totalItems - 5
-//        }
-//    }
-//
-//    LaunchedEffect(isNeededLoadMore, currentState.isLastPage) {
-//        if (isNeededLoadMore && !currentState.isLastPage) onLoadMore.invoke()
-//    }
+            lastVisibleItemIndex >= (totalItemsCount - 3) && totalItemsCount > 0
+        }
+    }
+    LaunchedEffect(shouldLoadMore, currentState.isLastPage) {
+        if (shouldLoadMore.value && !currentState.isLastPage) {
+            onLoadMore()
+        }
+    }
 
     CreateCourseDialog(showCreateCourseDialog, onCreate = onCreate)
     Box(Modifier.fillMaxSize()) {
@@ -193,24 +194,19 @@ fun CreateCourseDialog(
                     Modifier
                         .fillMaxSize()
                         .padding(10.dp)
-//                        .height(500.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text("Создание курса")
 
                     val name = remember { mutableStateOf("") }
-//                    Row(Modifier.fillMaxWidth()) {
                         OutlinedTextField(
                             value = name.value,
                             onValueChange = { value -> name.value = value }, label = {Text("Название")})
-//                    }
+
                     val description = remember { mutableStateOf("") }
-//                    Row(Modifier.fillMaxWidth()) {
                         OutlinedTextField(
                             value = description.value,
                             onValueChange = { value -> description.value = value }, label ={Text("Описание")} )
-//                    }
-
 
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         TextButton(
@@ -231,26 +227,6 @@ fun CreateCourseDialog(
         }
     }
 }
-
-//@Composable
-//fun ItemCourse(entity: CourseEntity) {
-//    ElevatedCard(
-//        Modifier
-//            .fillMaxWidth()
-//            .height(150.dp)
-//            .padding(10.dp)
-//    ) {
-//        Column(Modifier.fillMaxSize()) {
-//            Text(
-//                text = entity.name,
-//                style = Typography.headlineMedium,
-//                modifier = Modifier.padding(5.dp)
-//            )
-//            Text(text = entity.creator.username, style = Typography.bodyLarge)
-//            Text(text = entity.description)
-//        }
-//    }
-//}
 
 @Composable
 fun ItemLoading() {

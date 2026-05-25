@@ -7,7 +7,7 @@ import com.catoncat.studyapp.data.dto.CourseUpdateDto
 import com.catoncat.studyapp.data.dto.ExerciseUpdateDto
 import com.catoncat.studyapp.data.dto.LessonUpdateDto
 import com.catoncat.studyapp.data.source.AuthLocalDataSource
-import com.catoncat.studyapp.data.source.CourseInfoDataSource
+import com.catoncat.studyapp.data.source.CourseNetworkDataSource
 import com.catoncat.studyapp.domain.entities.AnswerEntity
 import com.catoncat.studyapp.domain.entities.CourseEntity
 import com.catoncat.studyapp.domain.entities.ExerciseEntity
@@ -18,10 +18,10 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 
 class CourseRepository(
-    private val courseInfoDataSource: CourseInfoDataSource
+    private val courseNetworkDataSource: CourseNetworkDataSource
 ) {
     suspend fun getCourses(query: String, page: Int, size: Int): Result<PagingCoursesEntity> {
-        return courseInfoDataSource.getCourses(query, page = page, size = size).mapCatching { dto ->
+        return courseNetworkDataSource.getCourses(query, page = page, size = size).mapCatching { dto ->
             PagingCoursesEntity(
                 isLast = dto.last ?: true,
                 courses = dto.content?.mapNotNull { courseDto ->
@@ -42,12 +42,12 @@ class CourseRepository(
     }
 
     suspend fun addLessonToCompletedLessons(lessonId: Long) {
-        courseInfoDataSource.insertToUsersCompletedLesson(mapOf(Pair("user_id",
+        courseNetworkDataSource.insertToUsersCompletedLesson(mapOf(Pair("user_id",
             AuthLocalDataSource.userDto?.id!!), Pair("lesson_id", lessonId)))
     }
 
     suspend fun getCoursesUserTook(page: Int, size: Int): Result<PagingCoursesEntity> {
-        return courseInfoDataSource.getCoursesUserTook(
+        return courseNetworkDataSource.getCoursesUserTook(
             userId = AuthLocalDataSource.userDto?.id!!,
             page = page,
             size = size
@@ -72,7 +72,7 @@ class CourseRepository(
     }
 
     suspend fun getCoursesCreatedByUser(page: Int, size: Int): Result<PagingCoursesEntity> {
-        return courseInfoDataSource.getCoursesCreatedByUser(
+        return courseNetworkDataSource.getCoursesCreatedByUser(
             userId = AuthLocalDataSource.userDto?.id!!,
             page = page,
             size = size
@@ -97,7 +97,7 @@ class CourseRepository(
     }
 
     suspend fun createCourse(name: String, description: String) {
-        courseInfoDataSource.createCourse(
+        courseNetworkDataSource.createCourse(
             CourseCreateDto(
                 name = name, description = description, creator = AuthLocalDataSource.userDto?.id!!
             )
@@ -105,28 +105,8 @@ class CourseRepository(
     }
 
     suspend fun getCourse(courseEntity: CourseEntity): Result<CourseEntity> {
-        return courseInfoDataSource.getCourse(courseEntity.id).mapCatching { courseDto ->
+        return courseNetworkDataSource.getCourse(courseEntity.id).mapCatching { courseDto ->
             val lessons = courseDto.lessons.orEmpty().map { lessonDto ->
-//                    var opened = true
-
-
-
-//                    val requiredLessonsId =
-//                        lessonDto.requiredLessons.orEmpty().map { requiredLessonDto ->
-//                                RequiredLessonEntity(
-//                                   requiredLessonDto.id!!,
-//                                    requiredLessonDto.name!!
-//                                )
-//                            if (!requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id)) {
-//                                opened = false
-//                            }
-
-//                            Log.d("CourseRepository", lessonDto.id.toString())
-//                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.size.toString())
-//                            Log.d("CourseRepository", requiredLessonDto.usersCompletedLesson["users_completed_lesson"]!!.contains(AuthLocalDataSource.userDto?.id).toString())
-//                            Log.d("CourseRepository", opened.toString())
-//                            requiredLessonDto.id!!
-//                        }.toPersistentList()
                 LessonEntity(
                     lessonDto.id,
                     lessonDto.name!!,
@@ -181,14 +161,11 @@ class CourseRepository(
                 lessons = lessons.toPersistentList()
             )
         }
-
-
-
     }
 
 
     suspend fun addCourseToUserTakenCourses(courseId: Long) {
-        courseInfoDataSource.insertToUsersTakenCourse(courseId, AuthLocalDataSource.userDto?.id!!)
+        courseNetworkDataSource.insertToUsersTakenCourse(courseId, AuthLocalDataSource.userDto?.id!!)
     }
 
     suspend fun updateCourse(courseEntity: CourseEntity) {
@@ -203,7 +180,7 @@ class CourseRepository(
         val tag = "CourseRepository"
         courseEntity.lessons.forEach { lessonEntity ->
             if (!lessonEntity.deleted && lessonEntity.id == null) {
-                lessonEntity.id = courseInfoDataSource.addLesson(LessonUpdateDto(
+                lessonEntity.id = courseNetworkDataSource.addLesson(LessonUpdateDto(
                     null,
                     lessonEntity.name,
                     lessonEntity.imageUrl,
@@ -216,7 +193,6 @@ class CourseRepository(
                 }
             } else if (lessonEntity.deleted && lessonEntity.id!=null) {
                 lessonsToDelete.add(lessonEntity.id!!)
-//                courseInfoDataSource.deleteLesson(lessonEntity.id!!)
                 return@forEach
             } else if (!lessonEntity.deleted){
                 val lessonDto = LessonUpdateDto(
@@ -227,7 +203,6 @@ class CourseRepository(
                     lessonEntity.y,
                     courseId = courseEntity.id
                 )
-//                courseInfoDataSource.updateLesson(lessonDto)
                 lessons.add(lessonDto)
                 lessonEntity.requiredLessons.forEach { requiredLessonId ->
                     lessonIdsRequiredLessonIds.add(mapOf(Pair("lesson_id", lessonEntity.id!!), Pair("required_lesson_id", requiredLessonId)))
@@ -236,7 +211,7 @@ class CourseRepository(
             lessonEntity.exercises.forEach { exerciseEntity ->
                 lessonEntity.id?:Log.d(tag,"LESSON NULL")
                 if(!exerciseEntity.deleted && exerciseEntity.id==null) {
-                    exerciseEntity.id = courseInfoDataSource.addExercise(exerciseDto = ExerciseUpdateDto(
+                    exerciseEntity.id = courseNetworkDataSource.addExercise(exerciseDto = ExerciseUpdateDto(
                         null,
                     exerciseEntity.name,
                     exerciseEntity.text,
@@ -244,8 +219,7 @@ class CourseRepository(
                     lessonEntity.id!!
                     )).id
                 } else if (exerciseEntity.deleted && exerciseEntity.id!=null) {
-//                    exercisesToDelete.add(exerciseEntity.id!!)
-                    courseInfoDataSource.deleteExercise(exerciseEntity.id!!)
+                    courseNetworkDataSource.deleteExercise(exerciseEntity.id!!)
                     return@forEach
                 } else if (!exerciseEntity.deleted){
                     val exerciseDto = ExerciseUpdateDto(
@@ -255,13 +229,12 @@ class CourseRepository(
                         exerciseEntity.typeName,
                         lessonEntity.id!!
                     )
-//                    exercises.add(exerciseDto)
-                    courseInfoDataSource.updateExercise(exerciseDto)
+                    courseNetworkDataSource.updateExercise(exerciseDto)
                 }
                 exerciseEntity.answers.forEach { answerEntity ->
                     answerEntity.id?:Log.d(tag,"ANSWER NULL")
                     if (!answerEntity.deleted && answerEntity.id==null) {
-                        answerEntity.id = courseInfoDataSource.addAnswer(AnswerUpdateDto(
+                        answerEntity.id = courseNetworkDataSource.addAnswer(AnswerUpdateDto(
                             null,
                             answerEntity.text,
                             answerEntity.correct,
@@ -269,7 +242,6 @@ class CourseRepository(
                         )).id
                     } else if (answerEntity.deleted && answerEntity.id!=null) {
                         answersToDelete.add(answerEntity.id!!)
-//                        courseInfoDataSource.deleteAnswer(answerEntity.id!!)
                     } else if(!answerEntity.deleted) {
                         val answerDto = AnswerUpdateDto(
                             answerEntity.id,
@@ -278,7 +250,6 @@ class CourseRepository(
                             exerciseEntity.id!!
                         )
                         answers.add(answerDto)
-//                        courseInfoDataSource.updateAnswer(answerDto)
                     }
                 }
             }
@@ -292,7 +263,7 @@ class CourseRepository(
         }
 
 
-        courseInfoDataSource.updateCourse(
+        courseNetworkDataSource.updateCourse(
             courseDto = CourseUpdateDto(
                 courseEntity.id,
                 courseEntity.name,
@@ -300,24 +271,19 @@ class CourseRepository(
                 courseEntity.backgroundUrl,
                 AuthLocalDataSource.userDto?.id!!
             )
-//            lessonDtoList = lessons,exerciseDtoList = exercises,
-//            answerDtoList = answers,
-//            lessonsToDeleteIdList = lessonsToDelete,
-//            exercisesToDeleteIdList = exercisesToDelete,
-//            answersDeleteIdList = answersToDelete
         )
 
-        courseInfoDataSource.deleteAllLessonsRequiredLessons(lessonIds)
+        courseNetworkDataSource.deleteAllLessonsRequiredLessons(lessonIds)
 
-        courseInfoDataSource.addLessonToRequiredLessons(lessonIdsRequiredLessonIds)
+        courseNetworkDataSource.addLessonToRequiredLessons(lessonIdsRequiredLessonIds)
 
 
-        courseInfoDataSource.updateLessons(lessons)
-        courseInfoDataSource.updateExercises(exercises)
-        courseInfoDataSource.updateAnswers(answers)
+        courseNetworkDataSource.updateLessons(lessons)
+        courseNetworkDataSource.updateExercises(exercises)
+        courseNetworkDataSource.updateAnswers(answers)
 
-        courseInfoDataSource.deleteAnswers(answersToDelete)
-        courseInfoDataSource.deleteExercises(exercisesToDelete)
-        courseInfoDataSource.deleteLessons(lessonsToDelete)
+        courseNetworkDataSource.deleteAnswers(answersToDelete)
+        courseNetworkDataSource.deleteExercises(exercisesToDelete)
+        courseNetworkDataSource.deleteLessons(lessonsToDelete)
     }
 }

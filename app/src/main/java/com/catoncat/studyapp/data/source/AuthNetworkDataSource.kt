@@ -21,22 +21,6 @@ import kotlin.uuid.Uuid
 class AuthNetworkDataSource {
     suspend fun checkAuth(): Result<Boolean> = withContext(Dispatchers.IO) {
         runCatching {
-//            val result = Network.client.get("${Network.HOST}/api/person/login") {
-//                addAuthHeader()
-//            }
-//            result.status == HttpStatusCode.Companion.OK
-
-
-//            val code =
-//                Base64.decode(AuthLocalDataSource.getToken()!!.removePrefix("Basic ").toByteArray())
-//                    .toString().split(":")
-//            val username = code[0]
-//            val password = code[1]
-//            val userId = Network.supabase.from("users").select {
-//                filter {
-//                    eq("username", username)
-//                }
-//            }.decodeSingleOrNull<String>()
 
             Network.supabase.auth.signInWith(Email) {
                 email = AuthLocalDataSource.email!!
@@ -51,19 +35,6 @@ class AuthNetworkDataSource {
                         eq("user_id", userID)
                     }
                 }.decodeSingleOrNull<UserDto>()
-
-//            Log.e(this.javaClass.name, Network.supabase.from("users").select(columns = Columns.raw("id")) {
-//                filter {
-//                    eq("user_id", userID)
-//                }
-//            }.decodeSingleOrNull<String>()?:"Test")
-
-//            AuthLocalDataSource.username =
-//                Network.supabase.from("users").select(columns = Columns.raw("username")) {
-//                    filter {
-//                        eq("user_id", userID)
-//                    }
-//                }.decodeSingleOrNull<Map<String, String>>()!!["username"]
 
             true
         }

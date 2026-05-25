@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.io.encoding.Base64
 
 class AuthViewModel : ViewModel() {
     private val checkAuthFormatUseCase by lazy { CheckAuthFormatUseCase() }
@@ -42,12 +43,25 @@ class AuthViewModel : ViewModel() {
             error = null,
             message = null
         )
+//        AuthState.Loading
     )
     val uiState: StateFlow<AuthState> = _uiState.asStateFlow()
 
     private val _actionFlow = MutableSharedFlow<AuthAction>()
 
     val actionFlow = _actionFlow.asSharedFlow()
+
+//    init {
+//        viewModelScope.launch {
+//            val token = AuthLocalDataSource.getToken()
+//            if (token != null) {
+//                val decode = Base64.decode((token).toByteArray()).toString().removePrefix("Basic ").split(":")
+//                AuthLocalDataSource.email = decode[0]
+//                AuthLocalDataSource.password = decode[1]
+//                onIntent(AuthIntent.SignIn(decode[0], decode[1]))
+//            }
+//        }
+//    }
 
     fun onIntent(intent: AuthIntent) {
         when (intent) {

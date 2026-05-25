@@ -39,8 +39,6 @@ import com.catoncat.studyapp.ui.theme.Typography
 @Composable
 fun NavRoute(
     modifier: Modifier,
-//    backStack: NavBackStack<NavKey> = rememberNavBackStack  (CoursesList)\
-//    backStack: SnapshotStateList<Any> = remember { mutableStateListOf(CoursesList) }
     backStack: SnapshotStateList<AppRoute>,
     onAvatarChanged: (url: String) -> Unit
 ) {
@@ -104,7 +102,7 @@ fun BottomNavBar(backStack: SnapshotStateList<AppRoute>, avatarUrl: MutableState
                 currentRoute == AppRoute.Settings,
                 icon = {
                     AsyncImage(
-                        model = avatarUrl.value/*AuthLocalDataSource.userDto?.avatarUrl?:""*/,
+                        model = avatarUrl.value,
                         contentDescription = "Avatar",
                         error = painterResource(com.catoncat.studyapp.R.drawable.baseline_account_circle_24),
                         modifier = Modifier

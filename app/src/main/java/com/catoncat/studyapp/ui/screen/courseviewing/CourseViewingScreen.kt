@@ -26,6 +26,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SmallFloatingActionButton
@@ -134,7 +135,7 @@ fun CourseViewingContentState(
     Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
-                .requiredSize(10000.dp, 10000.dp)
+                .requiredSize(2500.dp, 2500.dp)
                 .scale(scale = scale.floatValue)
                 .offset {
                     IntOffset(
@@ -170,7 +171,6 @@ fun CourseViewingContentState(
                     if (!lessonImageLoadingError.value) {
                         Column(
                             Modifier
-//                        .size(50.dp)
                                 .offset {
                                     IntOffset(
                                         lesson.x.toInt(),
@@ -187,7 +187,7 @@ fun CourseViewingContentState(
                                 onError = {
                                     lessonImageLoadingError.value = true
                                 })
-                            Text(lesson.name, color = Color.White, textAlign = TextAlign.Center)
+                            Text(lesson.name, style = Typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, textAlign = TextAlign.Center)
                         }
                     } else {
                         Button(
@@ -195,7 +195,6 @@ fun CourseViewingContentState(
                                 onChooseLesson(lesson)
                             },
                             Modifier
-//                        .size(50.dp)
                                 .offset {
                                     IntOffset(
                                         lesson.x.toInt(),
@@ -207,8 +206,7 @@ fun CourseViewingContentState(
                                 1.5.dp,
                                 Color.Green
                             ) else null,
-//                            shape = CircleShape
-                        ) { Text(lesson.name) }
+                        ) { Text(lesson.name, style = Typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground) }
                     }
                 }
             }
@@ -244,18 +242,13 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
     } else {
         val exerciseQueue =
             remember { mutableStateListOf<ExerciseEntity>(*lesson.exercises.toTypedArray()) }
-//        exerciseQueue.addAll()
         val exerciseCount = lesson.exercises.size;
-//        var currentLessonId = 0
-//        val currentExercise = remember { mutableStateOf(lesson.exercises[currentLessonId]) }
-//        val currentExercise = remember { derivedStateOf {  exerciseQueue.last() } }
         val rightChosen = remember { mutableStateOf(false) }
         val canAnswer = remember { mutableStateOf(false) }
         val lessonProgress =
             remember { derivedStateOf { 1 - exerciseQueue.size.toFloat() / exerciseCount } }
         val rightAnswers = remember {
             derivedStateOf {
-//                currentExercise.value.answers.filter { answerEntity -> answerEntity.correct }
                 exerciseQueue[0].answers.filter { answerEntity -> answerEntity.correct }
             }
         }
@@ -280,7 +273,6 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-//                text = currentExercise.value.text,
                     text = exerciseQueue[0].text,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
@@ -306,7 +298,7 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                         } else {
                             canAnswer.value = false
                         }
-                    }, Modifier.align(Alignment.Center), label = {Text("Ответ")})
+                    }, enabled = !answered.value, modifier = Modifier.align(Alignment.Center), label = {Text("Ответ")})
                 }
 
                 ExerciseType.Choose.typeName -> {
@@ -336,8 +328,6 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                 }
             }
 
-//            val isAnswerWrong = remember { mutableStateOf(false) }
-
             Column(Modifier.align(Alignment.BottomCenter)) {
 
                 if (exerciseQueue[0].answers.isEmpty()) {
@@ -360,20 +350,9 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                     }
                 } else if (answered.value) {
                     if (rightChosen.value) {
-//                    val text =
-//                        StringBuilder("Правильно. ${if (rightAnswers.size > 1) "Другие правильные ответы: " else "Другой правильный ответ: "}")
-//                    rightAnswers.forEachIndexed { index, answerEntity ->
-//                        text.append(answerEntity.text)
-//                        if (index != rightAnswers.size-1) {
-//                            text.append(", ")
-//                        }
-//                    }
-//                    Text(text.toString(), Modifier.fillMaxWidth())
                         Text("Правильно", Modifier.fillMaxWidth())
                         Button(
                             onClick = {
-//                            currentLessonId++
-//                            currentExercise.value = lesson.exercises[currentLessonId]
                                 exerciseQueue.removeAt(0)
                                 if (exerciseQueue.isEmpty()) {
                                     onLessonCompleted()
@@ -381,46 +360,27 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                                     canAnswer.value = false
                                     answered.value = false
                                     rightChosen.value = false
-//                                    currentExercise.value = exerciseQueue.last()
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
                             modifier = Modifier
                                 .fillMaxWidth()
-//                            .align(Alignment.BottomCenter)
                         ) {
                             Text("Дальше")
                         }
                     } else {
-//                    val text =
-//                        StringBuilder("Неправильно. Правильный ответ${if (rightAnswers.size > 1) "ы: " else ": "}")
-//                    rightAnswers.forEachIndexed { index, answerEntity ->
-//                        text.append(answerEntity.text)
-//                        if (index != rightAnswers.size-1) {
-//                            text.append(", ")
-//                        }
-//                    }
-//                    Text(text.toString(), Modifier.fillMaxWidth())
                         Text("Неправильно", Modifier.fillMaxWidth())
                         Button(
                             onClick = {
-//                            currentLessonId++
-//                            currentExercise.value = lesson.exercises[currentLessonId]
                                 exerciseQueue.add(exerciseQueue[0])
                                 exerciseQueue.removeAt(0)
                                 canAnswer.value = false
                                 answered.value = false
                                 rightChosen.value = false
-//                            if (exerciseQueue.isEmpty()) {
-//                                onLessonCompleted()
-//                            } else {
-//                                currentExercise.value = exerciseQueue.last()
-//                            }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                             modifier = Modifier
                                 .fillMaxWidth()
-//                            .align(Alignment.BottomCenter)
                         ) {
                             Text("Дальше")
                         }
@@ -433,7 +393,6 @@ fun LessonView(lesson: LessonEntity, onLessonCompleted: () -> Unit) {
                         enabled = canAnswer.value,
                         modifier = Modifier
                             .fillMaxWidth()
-//                        .align(Alignment.BottomCenter)
                     ) {
                         Text("Ответить")
                     }

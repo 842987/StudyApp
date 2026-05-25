@@ -25,7 +25,6 @@ fun ItemCourse(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-//            .height(150.dp)
             .padding(10.dp)
     ) {
         Column(Modifier.fillMaxSize().padding(5.dp)) {

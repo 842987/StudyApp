@@ -114,25 +114,6 @@ fun AllCoursesErrorState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllCoursesLoadingState(onRefresh: (query: String) -> Unit) {
-//    Box(Modifier.fillMaxSize()) {
-//        val searchQuery = remember { mutableStateOf("") }
-//
-//        Row(
-//            Modifier
-//                .fillMaxWidth()
-//                .align(Alignment.TopCenter)
-//        ) {
-//
-//            OutlinedTextField(
-//                value = searchQuery.value,
-//                onValueChange = { value -> searchQuery.value = value },
-//                placeholder = { Text("Поиск") })
-//            Button(onClick = {
-//                onRefresh(searchQuery.value)
-//            }) { Text("Найти") }
-//        }
-//        CircularProgressIndicator(Modifier.align(Alignment.Center))
-//    }
     val searchQuery = remember { mutableStateOf("") }
     PullToRefreshBox(
         isRefreshing = false,
@@ -177,22 +158,21 @@ fun AllCoursesContentState(
 ) {
     val searchQuery = remember { mutableStateOf("") }
 
-//    val isNeededLoadMore by remember {
-//        derivedStateOf {
-//            val lastVisibleItem =
-//                lazyColumnListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: Int.MIN_VALUE
-//            val totalItems = lazyColumnListState.layoutInfo.totalItemsCount
-//            lastVisibleItem >= totalItems - 5
-//        }
-//    }
-//
-//    LaunchedEffect(isNeededLoadMore, currentState.isLastPage) {
-//        if (isNeededLoadMore && !currentState.isLastPage) onLoadMore.invoke()
-//    }
+    val lazyColumnListState = rememberLazyListState()
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val layoutInfo = lazyColumnListState.layoutInfo
+            val totalItemsCount = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
 
-//    val isRefreshing by remember { mutableStateOf(false) }
-
-//    val searchExpanded = remember { mutableStateOf(false) }
+            lastVisibleItemIndex >= (totalItemsCount - 3) && totalItemsCount > 0
+        }
+    }
+    LaunchedEffect(shouldLoadMore, currentState.isLastPage) {
+        if(shouldLoadMore.value && !currentState.isLastPage) {
+            onLoadMore()
+        }
+    }
 
     PullToRefreshBox(
         isRefreshing = false,
@@ -221,65 +201,26 @@ fun AllCoursesContentState(
                 },
                 placeholder = { Text("Поиск по названию") }
             )
-//                    value = searchQuery.value,
-//                    onValueChange = { value -> searchQuery.value = value },
-//                    placeholder = { Text("Поиск") },
-//                    inputField = { },
-//                    modifier = Modifier.weight(0.7f).padding(horizontal = 3.dp))
-//                Button(onClick = {
-//                    onRefresh(searchQuery.value)
-//                }, Modifier.weight(0.3f).padding(horizontal = 3.dp)) { Text("Найти") }
 
-            CourseList(courses = currentState.courses, onCourseChosen)
-        }
-    }
+            LazyColumn(
+                Modifier
+                    .fillMaxWidth(),
+                state = lazyColumnListState
+            ) {
+                items(currentState.courses) { item ->
+                    when (item) {
+                        is AllCoursesState.Item.Course -> ItemCourse(
+                            item.entity,
+                            onClick = { onCourseChosen(item.entity) })
 
-
-}
-
-@Composable
-fun CourseList(
-    courses: PersistentList<AllCoursesState.Item>,
-    onCourseChosen: (course: CourseEntity) -> Unit
-) {
-    val lazyColumnListState = rememberLazyListState()
-    LazyColumn(
-        Modifier
-            .fillMaxWidth(),
-        state = lazyColumnListState
-    ) {
-        items(courses) { item ->
-            when (item) {
-                is AllCoursesState.Item.Course -> ItemCourse(
-                    item.entity,
-                    onClick = { onCourseChosen(item.entity) })
-
-                AllCoursesState.Item.Error -> ItemError()
-                AllCoursesState.Item.Loading -> ItemLoading()
+                        AllCoursesState.Item.Error -> ItemError()
+                        AllCoursesState.Item.Loading -> ItemLoading()
+                    }
+                }
             }
         }
     }
 }
-
-//@Composable
-//fun ItemCourse(entity: CourseEntity) {
-//    ElevatedCard(
-//        Modifier
-//            .fillMaxWidth()
-////            .height(150.dp)
-//            .padding(10.dp)
-//    ) {
-//        Column(Modifier.fillMaxSize()) {
-//            Text(
-//                text = entity.name,
-//                style = Typography.headlineMedium,
-//                modifier = Modifier.padding(5.dp)
-//            )
-//            Text(text = entity.creator.username, style = Typography.bodyLarge)
-//            Text(text = entity.description)
-//        }
-//    }
-//}
 
 @Composable
 fun ItemLoading() {

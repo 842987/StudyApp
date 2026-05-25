@@ -53,9 +53,7 @@ fun SettingsScreen(
             backStack.clear()
             backStack.add(AppRoute.Auth)
         }, onSave = { avatarUrl, username ->
-//            if (avatarUrl != AuthLocalDataSource.userDto?.avatarUrl) {
             onAvatarChanged(avatarUrl)
-//            }
             viewModel.onIntent(SettingsIntent.ChangeSettings(avatarUrl, username))
         })
 
@@ -78,15 +76,9 @@ fun ContentState(
 ) {
     val avatarUrl = remember { mutableStateOf(content.avatarUrl) }
     val username = remember { mutableStateOf(content.username) }
-//    Box(
-//        Modifier
-//            .fillMaxSize()
-//            .padding(10.dp)
-//    ) {
     Column(
         Modifier
             .fillMaxSize()
-//                .align(Alignment.TopCenter)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -134,5 +126,4 @@ fun ContentState(
             }
         }
     }
-//    }
 }

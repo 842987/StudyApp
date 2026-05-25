@@ -96,19 +96,20 @@ fun TakenCoursesContentState(
     onCourseChosen: (course: CourseEntity) -> Unit
 ) {
     val lazyColumnListState = rememberLazyListState()
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val layoutInfo = lazyColumnListState.layoutInfo
+            val totalItemsCount = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
 
-//    val isNeededLoadMore by remember {
-//        derivedStateOf {
-//            val lastVisibleItem =
-//                lazyColumnListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: Int.MIN_VALUE
-//            val totalItems = lazyColumnListState.layoutInfo.totalItemsCount
-//            lastVisibleItem >= totalItems - 5
-//        }
-//    }
-//
-//    LaunchedEffect(isNeededLoadMore, currentState.isLastPage) {
-//        if (isNeededLoadMore && !currentState.isLastPage) onLoadMore.invoke()
-//    }
+            lastVisibleItemIndex >= (totalItemsCount - 3) && totalItemsCount > 0
+        }
+    }
+    LaunchedEffect(shouldLoadMore, currentState.isLastPage) {
+        if(shouldLoadMore.value && !currentState.isLastPage) {
+            onLoadMore()
+        }
+    }
     PullToRefreshBox(
         isRefreshing = false,
         onRefresh = {
@@ -129,25 +130,6 @@ fun TakenCoursesContentState(
         }
     }
 }
-
-//@Composable
-//fun ItemCourse(entity: CourseEntity) {
-//    ElevatedCard(
-//        Modifier
-//            .fillMaxWidth()
-//            .height(150.dp)
-//            .padding(10.dp)
-//    ) {
-//        Column(Modifier.fillMaxSize()) {
-//            Text(
-//                text = entity.name,
-//                style = Typography.headlineMedium,
-//                modifier = Modifier.padding(5.dp)
-//            )
-//            Text(text = entity.description)
-//        }
-//    }
-//}
 
 @Composable
 fun ItemLoading() {
@@ -172,7 +154,7 @@ fun ItemError() {
             .padding(10.dp)
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Couldn't load")
+            Text("Не загружается")
         }
     }
 }

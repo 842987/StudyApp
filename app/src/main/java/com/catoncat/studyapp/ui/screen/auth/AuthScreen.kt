@@ -38,14 +38,16 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.catoncat.studyapp.data.source.AuthLocalDataSource
 import com.catoncat.studyapp.ui.navigation.AppRoute
+import kotlin.io.encoding.Base64
+import kotlin.text.toByteArray
 
 @Composable
 fun AuthScreen(
     viewModel: AuthViewModel = viewModel(),
     backStack: SnapshotStateList<AppRoute>
 ) {
-//    SecureScreen()
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -185,19 +187,3 @@ private fun Content(
         )
     }
 }
-//
-//@Composable
-//fun SecureScreen() {
-//    val activity = LocalActivity.current
-//    LifecycleStartEffect(Unit) {
-//        activity?.window?.setFlags(
-//            WindowManager.LayoutParams.FLAG_SECURE,
-//            WindowManager.LayoutParams.FLAG_SECURE
-//        )
-//        onStopOrDispose {
-//            activity?.window?.clearFlags(
-//                WindowManager.LayoutParams.FLAG_SECURE
-//            )
-//        }
-//    }
-//}
